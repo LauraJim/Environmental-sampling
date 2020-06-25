@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1593035482808.000,
+    "dirty" : false,
+    "encoding" : "ISO8859-1",
+    "folds" : "",
+    "hash" : "2734321711",
+    "id" : "F2B88F00",
+    "lastKnownWriteTime" : 1593115409,
+    "last_content_update" : 1593115409323,
+    "path" : "~/KU/Doc-project/ENM-group/Romero-Jimenez/Environmental-sampling/Hutchinson-functions.R",
+    "project_path" : "Hutchinson-functions.R",
+    "properties" : {
+        "cursorPosition" : "21,49",
+        "scrollLine" : "16",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

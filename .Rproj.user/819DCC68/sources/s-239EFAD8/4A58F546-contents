@@ -1,0 +1,649 @@
+# --------------------------------------------------------
+#'  Author: Daniel Romero-Alvarez, 
+#                
+#'  Script to:
+#'           Use categorized raster files to review environmental 
+#'           predictors and perform environmental sampling focused on 
+#'           the Hutchinson duality 
+# --------------------------------------------------------
+
+#######PACKAGES######
+
+## Uncomment and install as neccesary: 
+
+#install.packages('raster')
+#install.packages('rgdal')
+#install.packages('maptools')
+#install.packages('plyr')
+#install.packages('RColorBrewer')
+#install.packages("gatepoints")
+
+# --------------------------------------------------------
+
+######LIBRARIES######
+
+library (gatepoints) #allows using a function to select points from plots
+library (raster) #manipulating raster and shape files 
+library (rgdal) #manipulating raster and shape files
+library (maptools) #world shape files
+library (plyr) #transform list in dataframes 
+library (RColorBrewer) #color parameters
+
+# --------------------------------------------------------
+
+######FUNCTIONS######
+
+#####FUNCTION 1: Pair-wise comparison E-Space#####
+
+#DESCRIPTION: 
+#' The following function uses a raster stack to obtain the e-space and the g-space 
+#' of stacked raster variables. It is using the wrld_simpl in-built worldwide shape file in order 
+#' to obtain the different required geographies and create panels via dev.new 
+#' It can be used with any stack of environmental variables 
+
+#RETURN:
+#' The dataframe of extracted values that can be used for other kinds of visualization
+
+#' OPTIMIZATION: 
+#' Add the correlation of variables in the lower panel 
+#' Improve colors 
+
+#ARGUMENTS: 
+#'stck = stack of raster variables
+
+#FUNCTION: 
+e_space = function (stck){
+  #obtain world shapes and coordinates
+  data("wrld_simpl", package = "maptools") #obtain in-built world shape
+  WGS84 = crs(wrld_simpl) #obtain correct projection 
+  
+  #obtain points in dataframe format to convert in SpatialPointsDataframe for the extent 
+  pts1 = data.frame (rasterToPoints(stck, fun = NULL)) #transform values in a dataframe with coordinates
+  pts_sp = SpatialPointsDataFrame (pts1[,1:2], pts1, proj4string = WGS84) #transform values into spatial point dataframe for extent 
+  
+  #colors: 
+  pal5 = colorRampPalette(c('#fde0dd', '#c51b8a')) #color function between two colors
+  vct_cols = pal5(10)[as.numeric(cut(pts1[,3],breaks = 10))] #vector of colors using gradient according to one environmental column 
+  
+  #e-space
+  dev.new () #open figure space 
+  pairs (pts1[,3:length(pts1)], lower.panel = NULL, col = vct_cols, #write all the environmental combinations
+         pch = 16, cex = 0.5)
+  
+  #g-space
+  dev.new () #open second figure space
+  plot (pts_sp, col = 'grey', main = 'G-space') #plot the points 
+  plot (wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T) #add the corresponding shape 
+  return (pts1) #return overall dataframe 
+}
+
+# --------------------------------------------------------
+
+####FUNCTION 2: Depict E-space by categories#####
+
+#DESCRIPTION: 
+#' The main idea behind function 2 is to actually match the environmental variables 
+#' with the categories of the output models. The idea being that 
+#' the coordinates of the values of the rasters can be depicted showing the environmental 
+#' configuration of the examined environmental variables, either the ones used for the modeling or others. 
+
+#RETURN: 
+#' This is the dataframe that should be used to use the environmental sampling functions 
+
+#OPTIMIZATION: 
+#' The presence of NA's when using environemtnal variables different from the ones that were used to
+#' calibrate the model can cause an error that ends the program. 
+  
+#ARGUMENTS: 
+#'stck: raster stack containing the environmental predictors
+#'ctgr: categorized raster, could be a binary or multiple-threshold map. It will assign 
+#'ascending values of suitability, e.g., 1 = less suitable, 4 = highly suitable. 
+#'This is because 1 means that only one category is adequate for the species, usually MTP because
+#'uses the lesser value of the ocurrences
+#'Four means highly suitable because despite the threhsold, all categories highlight the same area 
+#'as suitable. In order to do this, the essence is to actually transform the categorized raster into points
+#'then, extract the environmental values with these points and finally put together the dataframe for the 
+#'function pairs to graph all the environmental spaces and the different categories in geography... 
+#' 
+
+#function
+e_space_categorical = function (stck,ctgr){
+  
+  #1. obtain world shape and projections: 
+  data("wrld_simpl", package = "maptools") #obtain in-built world shape
+  WGS84 = crs(wrld_simpl) #obtain correct projection 
+  
+  #2. create full dataframe divided by available categories: 
+  rr = list () #empty list 
+  for (i in 1:ctgr@data@max){ #obtain the number of categories in the raster (e.g., binary, thresholded)
+    pre_ras = rasterToPoints(ctgr, fun = function (x){x == i}) #transform in loops by category
+    pre_vals = data.frame (extract (stck, pre_ras[,1:2])) #extract values from the stack
+    pre_df = cbind (pre_ras, pre_vals) #combine dataframes
+    rr[[length(rr)+1]] = pre_df #add dataframes to the empty list 
+  }
+  def_df = ldply (rr, data.frame) #create a dataframe from all the elemenst of the list 
+  
+  #3. e-space
+  dev.new () #open figure space 
+  pal5 = colorRampPalette(c('#AF8DC3', '#7FBF7B'))
+  pairs (def_df[,4:length(def_df)], lower.panel = NULL, #write all the environmental combinations
+         pch = 1+def_df[,3], col = pal5(length(unique(def_df[,3])))[def_df[,3]], cex = 0.5) #HERE MAYBE ADD SAME SYMBOLS AS IN THE MAP! 
+  
+  #4. g-space
+  #create SpatialPointsDataframe to obtain extent
+  pts_sp = SpatialPointsDataFrame (def_df[,1:2],def_df, proj4string = WGS84) #transform values into spatial point dataframe for extent 
+  dev.new () #open second figure space
+  plot (pts_sp, col = pal5(length(unique(def_df[,3])))[def_df[,3]], pch = 1+def_df[,3], cex = 0.5, main = 'G-space') #plot the points 
+  plot (wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T) #add the corresponding shape 
+  suit_class = paste("Suitability value",unique(def_df[,3]))
+  legend('bottomleft', legend=suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
+         col = pal5(length(unique(def_df[,3]))))
+  return (def_df) #complete dataframe
+}
+
+# --------------------------------------------------------
+
+#####FUNCTION 3: Environments vs. Background#####
+
+#DESCRIPTION: 
+#' This function allows the comparison of all the environmental spaces vs a 
+#' background defined as the a raster stack provided by the user. It can be the same 
+#' environmental variables of the studied area to depict how much of the environemnts of the 
+#' area are actually used/not used by the model. If other environments are used, it depicts how different
+#' environemnts of the models are in comparison to the selected background. 
+
+#RETURN: 
+#' It returns a dataframe including the background category added as a new category in the examination. 
+
+#OPTIMIZATION: 
+#' Use the lower portion of the panel to depict statistics of the environments used vs non-used
+
+#ARGUMENTS: 
+#'stck: raster stack containing the environmental predictors, it can also work as background 
+#'ctgr: categorized raster, could be a binary or multiple-threshold map. It will assign 
+#' ascending values of suitability, e.g., 1 = less suitable, 4 = highly suitable. 
+#'back: raster stack with the background environmental variables, it can use 
+#'
+
+#FUNCTION: 
+e_space_cat_back = function (stck,ctgr, bck){
+  #1. obtain world shape and projections: 
+  data("wrld_simpl", package = "maptools") #obtain in-built world shape
+  WGS84 = crs(wrld_simpl) #obtain correct projection 
+  
+  #2. create full dataframe divided by available categories: 
+  rr = list () #empty list 
+  for (i in 1:ctgr@data@max){ #obtain the number of categories in the raster (e.g., binary, thresholded)
+    pre_ras = rasterToPoints(ctgr, fun = function (x){x == i}) #transform in loops by category
+    pre_vals = data.frame (extract (stck, pre_ras[,1:2])) #extract values from the stack
+    pre_df = cbind (pre_ras, pre_vals) #combine dataframes
+    rr[[length(rr)+1]] = pre_df #add dataframes to the empty list 
+  }
+  def_df = ldply (rr, data.frame) #create a dataframe from all the elemenst of the list 
+  
+  #3. Background variables
+  bck_ras = data.frame(rasterToPoints(bck, fun = NULL))
+  bck_ras = cbind (bck_ras[,1:2],rep(length(unique (def_df[,3]))+1,length(bck_ras[,1])), #add here the rep for the total categories +1 otherwise could cause an error
+                   bck_ras[,3:length(bck_ras)])
+  names (bck_ras)[3] = names (ctgr)
+  def_df2 = rbind (bck_ras, def_df) #add the background category to the dataframe 
+  
+  #4. e-space
+  dev.new () #open figure space 
+  #mycols = c(brewer.pal(n = length(unique(def_df[,3])), name = 'PRGn'), 'grey')
+  pal5 = colorRampPalette(c('#AF8DC3', '#7FBF7B'))
+  pairs (def_df2[,4:length(def_df2)], lower.panel = NULL, #write all the environmental combinations
+         pch = 1 , col = c(pal5(length(unique(def_df[,3]))), 'grey')[def_df2[,3]], cex = 0.5)
+  
+  #5. g-space, only target stack...background not here... 
+  #create SpatialPointsDataframe to obtain extent
+  pts_sp = SpatialPointsDataFrame (def_df[,1:2],def_df, proj4string = WGS84) #transform values into spatial point dataframe for extent 
+  dev.new () #open second figure space
+  plot (pts_sp, col = pal5(length(unique(def_df[,3])))[def_df[,3]], pch = 1+def_df[,3], cex = 0.5) #plot the points 
+  plot (wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T) #add the corresponding shape 
+  cat_names = paste("Suitability",unique(def_df[,3]))
+  legend('bottomleft', legend=cat_names, pch = 1+unique(def_df[,3]), cex = 0.7, 
+         col = pal5(length(unique(def_df[,3]))))
+  return (def_df2) #complete dataframe
+} 
+
+# --------------------------------------------------------
+
+######FUNCTION 4: SELECTING FROM E to G#####
+
+#DESCRIPTION: 
+#' The following function depicts a plot with two selected environmental variables 
+#' and allows the user to select areas in the environmental space (E-space) 
+#' to be represented in the geographical space (G-space). 
+
+#RETURN: 
+#' Plots the selected environmental space and allows the user to select areas
+#' The selected areas are then represented in the geographical space.
+#' It returns a database with coordinates, values, categories, and the selected tracks.
+
+# ARGUMENTS
+#' data: dataframe with the following columns: longitude, latitude, category (1, 2, 3...),
+#' environmental values 
+#' calls: vector size of two: here I add the columns from the database that are going to be used
+#' plgy: Add the corresponding polygon that will represent the geographical space
+#' ntr: number of transects that can be drawn in the environmental space. 
+
+#FUNCTION: 
+hutchinson_e_g <- function(data, calls, pgly, ntr){
+  #defining color ramp for plotting: 
+  pal5 = colorRampPalette(c('#AF8DC3', '#7FBF7B'))
+  
+  # Plot 1: E-space
+  dev.new()
+  plot(data[,calls[1]], data[,calls[2]], col = pal5(length(unique(data[,3])))[data[,3]],
+       main="E-space", cex = 0.5, pch = 1+data[,3],
+       xlab = paste ('Env_var1:', colnames(data[calls[1]])), 
+       ylab = paste ('Env_var2:', colnames(data[calls[2]])))
+  suit_class = paste("Suitability value",unique(data[,3]))
+  # legend('bottomleft', legend= suit_class,
+  #        col= pal5(length(unique(data[,3]))), pch = 1+unique(data[,3]), cex=0.7)
+  # defining transects in E-space
+  transects <- vector("list",length=ntr)
+  for(j in 1:ntr){
+    # left click to create points, right click to finish
+    ss = fhs(data.frame(data[,calls[1]], data[,calls[2]]),pch=1+j)
+    transects[[j]] = cbind(as.matrix(data[ss,]),rep(j,length(ss)))
+    #transects[[j]] = cbind(as.matrix(data[ss[1:length(ss)],]),rep(j,length(ss)))
+  }
+  all.tr = data.frame (do.call(rbind,transects)) #I left it as a dataframe, originally matrix  #POTENTIALLY ELIMINATE DUPLICATES 
+  
+  # Plot 2: geography
+  dev.new()
+  plot (pgly, main = paste ('G-space'))
+  points (all.tr[,1:2], col = pal5(length(unique(all.tr[,3])))[all.tr[,3]], pch = 1+all.tr[,dim(all.tr)[2]], cex = 0.8)
+  tr.names <- paste("Transect",1:ntr)
+  legend('bottomleft', legend=tr.names, pch = 1+(1:ntr))
+  # save new matrix with selected points
+  return(all.tr)
+}
+
+# -----------------------
+
+#####FUNCTION 5: SELECTING FROM G TO E#####
+
+#DESCRIPTION: 
+#' The following function depicts a plot with the geographical space categorized 
+#' according to the model output and allows the user to select areas in 
+#' the geographical space (G-space) to be represented in the environmental space (E-space). 
+
+#RETURN: 
+#' Plots the selected geographical space and allows the user to select areas
+#' The selected areas are then represented in the environmental space.
+#' It returns a database with coordinates, values, categories, and the selected tracks.
+
+# ARGUMENTS
+#' data: dataframe with the following columns: longitude, latitude, category (1, 2, 3...),
+#' environmental values 
+#' calls: vector size of two: here I add the columns from the database that are going to be used
+#' plgy: Add the corresponding polygon that will represent the geographical space
+#' ntr: number of transects that can be drawn in the geographical space. 
+
+#FUNCTION: 
+
+hutchinson_g_e <- function(data, calls, pgly, ntr){
+  #selecting color ramp 
+  #mycols = brewer.pal(n = length(unique(data[,3])), name = 'PRGn')
+  pal5 = colorRampPalette(c('#AF8DC3', '#7FBF7B'))
+ 
+   #dataframe in spatial object 
+  data("wrld_simpl", package = "maptools")
+  sp_ob = SpatialPointsDataFrame(data[,1:2], data, proj4string = crs(wrld_simpl))
+  
+  # Plot 1: G-space
+  dev.new()
+  plot (sp_ob, main = paste ('G_space'), 
+        col = pal5(length(unique(sp_ob@data[,3])))[sp_ob@data[,3]], pch = 1+sp_ob@data[,3], cex = 0.8)
+  plot (pgly, add = T)
+  suit_class = paste("Suitability value",unique(sp_ob@data[,3]))
+  legend('bottomleft', legend=suit_class,
+         col= pal5(length(unique(sp_ob@data[,3]))), pch = 1+ unique(sp_ob@data[,3]), cex=0.7)
+  
+  # defining transects in G-space
+  transects <- vector("list",length=ntr)
+  for(j in 1:ntr){
+    # left click to create points, right click to finish
+    ss = fhs(sp_ob@data,pch=1+j)
+    transects[[j]] = cbind(as.matrix(sp_ob@data[ss,]),rep(j,length(ss))) #here I am subsetting the entire dataset according to the index selected 
+  }
+  all.tr = data.frame (do.call(rbind,transects)) #I just left this as a dataframe! #POTENTIALLY ELIMINATE DUPLICATES 
+  
+  # Plot 2: E-space
+  dev.new()
+  plot(all.tr[,calls[1]], all.tr[,calls[2]], 
+       cex = 0.8, col = pal5(length(unique(all.tr[,3])))[all.tr[,3]], pch = 1+all.tr[,dim(all.tr)[2]],
+       main="E-space", 
+       xlab = paste ('Env_var1:', colnames(all.tr[calls[1]])), 
+       ylab = paste ('Env_var2:', colnames(all.tr[calls[2]])))
+  tr.names = paste ('Transect', 1:ntr)
+  legend ('bottomleft', legend = tr.names, pch = 1+(1:ntr))
+  return(all.tr)
+}
+
+# --------------------------------------------------------
+
+#####FUNCTION 6: Points in uncertainty maps#####
+
+#DESCRIPTION: 
+#' The function depicts the points selected in the environmental or geographical sampling 
+#' over the uncertainty surface calculated during model selection. Here we can see wether the coordinates
+#' occupy areas of high or low uncertainty. 
+
+#RETURN:
+#' Dataframe with coordinates, categories, environmental values per pixel, 
+#' track number, uncertainty values. This dataframe can not longer be used for the 
+#' previous functions 
+
+#ARGUMENTS: 
+#' data_track: dataframe with coordinates, categories, track class
+#' uncert_ras: raster measuring variability 
+#' pgly: polygon 
+
+#FUNCTION: 
+post_track = function(data_track, uncert_ras, pgly){
+  #selecting color ramp 
+  pal4 = colorRampPalette(c('#AF8DC3', '#7FBF7B'))
+  #mycols = brewer.pal(n = length(unique(data_track[,3])), name = 'PRGn') #for tracking points 
+  pal5 = colorRampPalette(c('lightyellow', '#FFA571')) #for uncertainty raster
+  
+  #eliminating duplicates: POTENTIALLY THIS SHOULD BE DONE IN THE OTHER FUNCTIONS... 
+  data_track$dup = paste(data_track[,3], data_track[,1], data_track[,2], sep= '_')
+  data_track = data_track[!duplicated(data_track$dup),]
+  data_track$dup = NULL
+  
+  #plotting points against uncertainty map 
+  dev.new()
+  #points 1: 
+  plot (data_track[,1], data_track[,2], 
+        main = 'Uncertainty',
+        xlab = 'Latitude',
+        ylab = 'Longitude',
+        col = pal4(length(unique(data_track[,3])))[data_track[,3]], 
+        pch = 1+data_track[,dim(data_track)[2]], cex = 0.5)
+  #raster and shape:
+  plot (uncert_ras, col = pal5(13), add = T)
+  plot (pgly, add = T)
+  #points 2: 
+  points (data_track[,1], data_track[,2], 
+          col = pal4(length(unique(data_track[,3])))[data_track[,3]], 
+          pch = 1+data_track[,dim(data_track)[2]], cex = 0.5)
+  tr.names = paste ('Transect', unique(data_track[,dim(data_track)[2]]))
+  legend ('bottomleft', legend = tr.names, pch = 1+unique(data_track[,dim(data_track)[2]]))
+  
+  #adding uncertainty values 
+  unc_data = extract (uncert_ras, data_track[,1:2])
+  def_unc = cbind (data_track, uncertainty_val = unc_data)
+  
+  return (def_unc) #definitive dataframe no longer usful for any function because ot the newer column
+}
+
+# --------------------------------------------------------
+
+#####WORKING EXAMPLES#####
+
+#####FIRST RUN#####
+#Run the code from line 1 to this line 
+
+#####UPLOADING DATA#####
+#Available data (folders): 
+
+#' categorized_models: models categorized using four thresholds as described in the main text
+#' Minimum training presence, E= 5%, E= 10%, and E= 20% 
+#' environemntal_variables: The set of environmental variables selected in the modeling process
+#' shapefiles: Shapefiles to depict results presented 
+#' uncertainty_models: Interquartile range of the bootstrap models using the selected parameters
+
+#####READING DATA#####
+#Working directory: 
+setwd ('/Users/daniel/Documents/MIELOIDOSIS/_MANUSCRIPT1/FINAL_MODELS/Def_data')
+
+#retrieving simple worldwide shapefile 
+data("wrld_simpl", package = "maptools")
+
+#reading environmental variables (n = 4) 
+all_envs = stack (list.files('./environemntal_variables', full.names = T))
+
+#reading categorized rasters (n = 3)
+cat_models = stack (list.files ('./categorized_models', full.names = T))
+
+#reading uncertainty rasters (n = 3)
+uncert_models = stack (list.files ('./uncertainty_models', full.names = T))
+
+#####EXAMPLE 0: CEARÃ, BRAZIL, FULLY COMMENTED#####
+
+#####CEARA, BRAZIL##### 
+#shapefiles from Natural Earth: 
+provs = readOGR('./shapefiles2/ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp')
+
+#subset for specific area: 
+BR = provs@data[which (provs@data$admin =='Brazil'),] #provinces of a country 
+BR$name #Check names of the province, in this case CearÃ¡
+
+cear = subset (provs, name == 'CearÃ¡')
+cear_buf = buffer (cear, width = 0.2, dissolve = T) 
+
+#' we create a buffer to assure that all pixels from the environmnetal rasters,  
+#' categorized models and uncertainty maps are captured
+
+#plot (cear)
+#plot (cear_buf)
+
+#Crop and mask environmental variables
+cear_envs = crop (all_envs, cear_buf)
+cear_envs = mask (cear_envs, cear_buf)
+#plot (cear_envs[[1]])
+
+#Crop and mask categorized rasters: 
+cear_mods = crop (cat_models, cear_buf)
+cear_mods= mask (cear_mods, cear_buf)
+#plot (cear_mods[[3]]) 
+
+#' cear_mods contains 3 raster files corresponding to categorized models 
+#' using the no extrapolation (NE), extrapolation (E), and extrapolation and 
+#' clamping (EC) maxent functions to transfer models to a desired area. 
+#' We are selecting the third raster which corresponds to NE. 
+
+#Crop and mask uncertainty maps: 
+cear_unc = crop (uncert_models, cear_buf)
+cear_unc = mask (cear_unc, cear_buf)
+#plot(cear_unc[[3]])
+
+#' Uncertainty plots are available for all the transfered rasters including 
+#' NE, E, and EC. We are selecting the uncertainty for NE which is the raster
+#' we are using for this excercise. 
+
+#Using functions: 
+
+#Function 1: e_space(). Checking environments available: 
+#' Arguments for this function include: 
+#' - stck = Stack of environmental variables. 
+
+f1_cear = e_space(cear_envs)
+
+#' G-space is showing only partial borders since wrld_simpl lacks information 
+#' for provinces and only has information at the country level. 
+
+#Function 2: e_space_categorical(). Creating dataframe for environemntal sampling: 
+#' Arguments for this function include: 
+#' - stck = Stack of environmental variables. 
+#' - ctgr = Stack of categorized models or individual rasters. 
+
+f2_cear = e_space_categorical(cear_envs, cear_mods[[3]])
+
+#' The object created is the dataframe that will be used for environmental sampling. 
+#' We are using the raster corresponding to the not-extrapolation result (NE), 
+#' therefore, just the third object from the raster stack cear_mods
+
+#Function 3: e_space_cat_back(). Suitability vs background environemnts: 
+#' Arguments for this function include: 
+#' - stck = Stack of environmental variables. 
+#' - ctgr = Stack of categorized models or individual rasters. 
+#' - bck = Stack of environemntal variables to use as background. 
+
+f3_cear = e_space_cat_back(cear_envs, cear_mods[[3]], cear_envs)
+
+#' This function allows to check the presence of regions not used by the model 
+#' but that are present in the studied area (grey points). Because the majority of CearÃ¡ presents 
+#' a suitable category, grey areas are shown only for Humidity and Soil comparisons.
+#' The dataframe produced here should not be used for the other functions since has 
+#' an extra category corresponding to background does not corresponds to suitable 
+#' environments as determined by the model. 
+
+#Function 4: hutchinson_e_g(). Sampling from E-space, maximizing suitability classes
+#' Arguments for this function include: 
+#' - data = Data frame obtained with e_space_categorical function.
+#' - calls = Columns with environmental values that should be used for the plots.
+#' - pgly = Polygon to depict G-Space.
+#' - ntr = Number of selections that should be done in the plot.
+
+names (f2_cear) #select the columns for the calls argument, use the environemtnal values
+f4_cear_tmp_hum = hutchinson_e_g(f2_cear, c(6, 4), cear, 3)
+f4_cear_tmp_soil = hutchinson_e_g(f2_cear, c(6, 5), cear, 3)
+f4_cear_hum_soil = hutchinson_e_g(f2_cear, c(4, 5), cear, 3)
+
+#' Here the excercise of sampling has the idea to maximize different suitability 
+#' classess in the environmental dimensions selected, considering pair-wise associations.
+#' Because principal component 1 recovers the majority of the variability in the environmental  
+#' sets used, we sample in three plots considering PC1 for temperature and PC1 for humidity 
+#' PC1 for temperature and PC1 for soils and PC1 for humidity and PC1 from soils. 
+
+#combining the dataframes: 
+cear_sampling = rbind (f4_cear_tmp_hum, f4_cear_tmp_soil, f4_cear_hum_soil)
+
+#' By combining all the dataframes we have all the pixels considering the different 
+#' tracks selected in three different environmental scenarios. 
+
+#Function 6: post_track(). Checking uncertainty in selected environmental tracks: 
+#' Arguments in this function include: 
+#' - data_track = Dataframe obtained using function 4 or 5 with different track categories. 
+#' - uncert_ras = Raster containing measures of uncertainty for the model assessed. 
+#' - pgly = Shape file to depict G-space.
+
+f6_cear = post_track(cear_sampling, cear_unc[[3]], cear)
+
+#' Because different environmental tracks were selected using different environemtnal 
+#' values, some information might be repeated, for that, post_track functions eliminates
+#' duplicates for producing its final object. 
+
+dim(cear_sampling)
+dim(f6_cear)
+
+#Writing final results tables for further manipulation and figure! 
+write.csv (f2_cear, './ceara_df1.csv', row.names = F)
+write.csv (f6_cear, './ceara_res.csv', row.names = F)
+
+
+#Function 5: hutchinson_g_e(). Sampling from G-space, maximizing suitability classes: 
+#' Arguments in this function include: 
+#' - data = Data frame obtained with e_space_categorical function.
+#' - calls = Columns with environmental values that should be used for the plots.
+#' - pgly = Polygon to depict G-Space.
+#' - ntr = Number of selections that should be done in the plot.
+
+names (f2_cear) #select the columns for the calls argument, use the environemtnal values
+f5_cear = hutchinson_g_e(f2_cear, c(5, 4), cear, 3)
+
+#' This function has the same ability as function 4 but allows to create transects 
+#' in the geographical space and then examined the transects in the desired environments 
+#' 
+
+
+#####EXAMPLE 1: MEXICO#####
+
+wrld_simpl@data$NAME
+
+mex = subset (wrld_simpl, NAME == 'Mexico')
+mex_buf = buffer (mex, width = 0.2, dissolve = T)
+
+#plot (mex_buf)
+
+#Crop and mask environmental variables
+mex_envs = crop (all_envs, mex_buf)
+mex_envs = mask (mex_envs, mex_buf)
+#plot (mex_envs[[1]])
+
+#Crop and mask categorized rasters: 
+mex_mods = crop (cat_models, mex_buf)
+mex_mods= mask (mex_mods, mex_buf)
+#plot (mex_mods[[1]])
+
+#Crop and mask uncertainty maps: 
+mex_unc = crop (uncert_models, mex_buf)
+mex_unc = mask (mex_unc, mex_buf)
+#plot(mex_unc[[1]])
+
+#Using functions: 
+
+#Function 1: checking environments available: 
+f1_mex = e_space(mex_envs)
+
+#Function 2: creating dataframe for environemntal sampling: 
+#This object will be used for the next functions...
+f2_mex = e_space_categorical(mex_envs, mex_mods[[1]])
+
+#Function 3: suitability vs background environemnts: 
+f3_mex = e_space_cat_back(mex_envs, mex_mods[[1]], mex_envs)
+
+#Function 4: sampling from E-space, maximizing suitability classes
+names (f2_mex) #select the columns for the calls argument, use the environemtnal values
+f4_mex = hutchinson_e_g(f2_mex, c(5, 4), mex_buf, 4)
+
+#Function 5: sampling from G-space, maximizing suitability classes: 
+names (f2_mex) #select the columns for the calls argument, use the environemtnal values
+f5_mex = hutchinson_g_e(f2_mex, c(5, 4), mex_buf, 4)
+
+#Function 6: checking uncertainty in selected environmental tracks: 
+f6_mex = post_track(f4_mex, mex_unc[[1]], mex_buf)
+
+
+#####EXAMPLE 2: LYBIA#####
+wrld_simpl@data$NAME
+
+lib = subset (wrld_simpl, NAME == 'Libyan Arab Jamahiriya')
+lib_buf = buffer (lib, width = 0.2, dissolve = T)
+
+#plot (lib_buf)
+
+#Crop and mask environmental variables
+lib_envs = crop (all_envs, lib_buf)
+lib_envs = mask (lib_envs, lib_buf)
+#plot (lib_envs[[1]])
+
+#Crop and mask categorized rasters: 
+lib_mods = crop (cat_models, lib_buf)
+lib_mods= mask (lib_mods, lib_buf)
+#plot (lib_mods[[1]])
+
+#Crop and mask uncertainty maps: 
+lib_unc = crop (uncert_models, lib_buf)
+lib_unc = mask (lib_unc, lib_buf)
+#plot(lib_unc[[1]])
+
+#Using functions: 
+
+#Function 1: checking environments available: 
+
+f1_lib = e_space(lib_envs)
+
+#Function 2: creating dataframe for environemntal sampling: 
+#This object will be used for the next functions...
+f2_lib = e_space_categorical(lib_envs, lib_mods[[1]])
+
+#Function 3: suitability vs background environemnts: 
+f3_lib = e_space_cat_back(lib_envs, lib_mods[[1]], lib_envs)
+
+#Function 4: sampling from E-space, maximizing suitability classes
+names (f2_lib) #select the columns for the calls argument, use the environemtnal values
+f4_lib = hutchinson_e_g(f2_lib, c(6, 4), lib_buf, 4)
+
+#Function 5: sampling from G-space, maximizing suitability classes: 
+names (f2_lib) #select the columns for the calls argument, use the environemtnal values
+f5_lib = hutchinson_g_e(f2_lib, c(6, 4), lib_buf, 4)
+
+#Function 6: checking uncertainty in selected environmental tracks: 
+f6_lib = post_track(f4_lib, lib_unc[[1]], lib_buf)
+
