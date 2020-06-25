@@ -97,7 +97,7 @@ e_space_cat = function(stck,ctgr){
 #' environments are used, it depicts how different environemnts of the models
 #' are in comparison to the selected background.
 # CODE e_space_cat_back ---------
-# Dependencies: maptools, wrld_simpl, raster 
+# Dependencies: maptools, wrld_simpl, raster, plyr 
 e_space_cat_back = function (stck, ctgr, bck){
   #1. obtain world shape and projections: 
   data("wrld_simpl", package = "maptools") #obtain in-built world shape
