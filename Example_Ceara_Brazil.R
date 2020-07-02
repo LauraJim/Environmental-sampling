@@ -1,9 +1,21 @@
 # WORKED EXAMPLE
 
+# Read R code ----------------
+# These three scripts contain the functions needed for the analyses
 source("E-space-functions.R")
 source("Hutchinson-functions.R")
+source("Post-track-function.R")
 
-##### UPLOADING DATA
+# Load packages -------------
+library (gatepoints)
+library (raster)
+library (rgdal)
+library (maptools)
+library (plyr)
+# worldwide shapefile 
+data("wrld_simpl", package = "maptools")
+
+# Read data -----------------
 #Available data (folders): 
 
 #' categorized_models: models categorized using four thresholds as described in the main text
@@ -11,9 +23,6 @@ source("Hutchinson-functions.R")
 #' environemntal_variables: The set of environmental variables selected in the modeling process
 #' shapefiles: Shapefiles to depict results presented 
 #' uncertainty_models: Interquartile range of the bootstrap models using the selected parameters
-
-#retrieving simple worldwide shapefile 
-data("wrld_simpl", package = "maptools")
 
 #reading environmental variables (n = 4) 
 all_envs = stack (list.files('./environmental_variables', full.names = T))
