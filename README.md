@@ -1,2 +1,3 @@
 # Environmental-sampling
  
+Working in an example to apply the corresponding functions with the available data to perform the sampling... 
