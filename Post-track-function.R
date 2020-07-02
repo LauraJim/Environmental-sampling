@@ -1,21 +1,21 @@
-#####FUNCTION 6: Points in uncertainty maps#####
+# Functions 'post_track' ----------
+### This function ...
+### ...
+#
+#' @param data_track dataframe with coordinates, categories, track class
+#' @param uncert_ras raster measuring variability
+#' @param pgly polygon (shape file)
+#' @return
+#' \code{post_track} returns a dataframe with coordinates, categories,
+#' environmental values per pixel, track number, uncertainty values.
+#' 
+#' @describeIn post_track depicts the points selected in either the
+#' environmental or geographical sampling over the uncertainty surface
+#' calculated during model selection. It allows to see whether the
+#' points occupy high or low suitability areas.
 
-#DESCRIPTION: 
-#' The function depicts the points selected in the environmental or geographical sampling 
-#' over the uncertainty surface calculated during model selection. Here we can see wether the coordinates
-#' occupy areas of high or low uncertainty. 
-
-#RETURN:
-#' Dataframe with coordinates, categories, environmental values per pixel, 
-#' track number, uncertainty values. This dataframe can not longer be used for the 
-#' previous functions 
-
-#ARGUMENTS: 
-#' data_track: dataframe with coordinates, categories, track class
-#' uncert_ras: raster measuring variability 
-#' pgly: polygon 
-
-#FUNCTION: 
+# CODE post_track ---------
+# Dependencies: 
 post_track = function(data_track, uncert_ras, pgly){
   #selecting color ramp 
   pal4 = colorRampPalette(c('#AF8DC3', '#7FBF7B'))
