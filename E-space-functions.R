@@ -10,6 +10,10 @@
 #' @param bck raster stack with environmental variables clipped to the background
 #'   area.
 #' @param pflag logic, indicating if the results should be plotted.
+#' @param col.use vector of lenght two with the colors to be used in plots
+#' @param wrld_crs coordinate reference system to be used in the plots.
+#' The default is using the CRS of the data wrld_simpl.
+#' 
 #' @return
 #' \code{e_space} returns a dataframe with the extracted values that can be used
 #' for other kinds of visualizations.
@@ -24,29 +28,30 @@
 #' G-space.
 # CODE e_space ---------
 # Dependencies: maptools, wrld_simpl, raster 
-e_space = function(stck,pflag=F,col.use=NULL){
-  #obtain world shapes and coordinates
-  data("wrld_simpl", package = "maptools") #obtain in-built world shape
-  WGS84 = crs(wrld_simpl) #obtain correct projection 
-  
-  #obtain points in dataframe format to convert in SpatialPointsDataframe for the extent 
-  pts1 = data.frame(rasterToPoints(stck, fun = NULL)) #transform values in a dataframe with coordinates
-  pts_sp = SpatialPointsDataFrame(pts1[,1:2], pts1, proj4string = WGS84) #transform values into spatial point dataframe for extent 
-  
-  #colors: 
-  pal5 = colorRampPalette(c('#fde0dd', '#c51b8a')) #color function between two colors
-  vct_cols = pal5(10)[as.numeric(cut(pts1[,3],breaks = 10))] #vector of colors using gradient according to one environmental column 
-  
-  #e-space
-  dev.new() #open figure space 
-  pairs(pts1[,3:length(pts1)], lower.panel = NULL, col = vct_cols, #write all the environmental combinations
-         pch = 16, cex = 0.5)
-  
-  #g-space
-  dev.new() #open second figure space
-  plot(pts_sp, col = 'grey', main = 'G-space') #plot the points 
-  plot(wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T) #add the corresponding shape 
-  return (pts1) #return overall dataframe 
+e_space = function(stck,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
+  # transform raster into referenced points and into a data frame
+  pts1 = data.frame(rasterToPoints(stck, fun = NULL))
+  # Plotting if TRUE
+  if(pflag){
+    # transform values into spatial points to plot on map
+    pts_sp = SpatialPointsDataFrame(pts1[,1:2], pts1, proj4string = wrld_crs)
+    # color function between two colors
+    pal5 = colorRampPalette(col.use) 
+    # vector of colors using gradient according to one environmental column
+    vct_cols = pal5(10)[as.numeric(cut(pts1[,3],breaks = 10))]
+    # E-space
+    dev.new()
+    # scatter plots of all the environmental combinations
+    pairs(pts1[,3:length(pts1)], lower.panel = NULL, col = vct_cols, main = 'E-space',
+          cex = 0.5, pch = 16)
+    # G-space
+    dev.new()
+    # plot the points that cover the area of interest
+    plot(pts_sp, col = 'grey', main = 'G-space') 
+    # add the boundary of the area
+    plot(wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+  }
+  return (pts1) # return dataframe 
 }
 #
 #' @describeIn e_space_cat first transforms a raster stack of environmental
@@ -56,7 +61,7 @@ e_space = function(stck,pflag=F,col.use=NULL){
 #' it also displays the points into E-space and G-space.
 # CODE e_space_cat ---------
 # Dependencies: maptools, wrld_simpl, raster 
-e_space_cat = function(stck,ctgr){
+e_space_cat = function(stck,ctgr,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
   
   #1. obtain world shape and projections: 
   data("wrld_simpl", package = "maptools") #obtain in-built world shape
@@ -74,7 +79,7 @@ e_space_cat = function(stck,ctgr){
   
   #3. e-space
   dev.new() #open figure space 
-  pal5 = colorRampPalette(c('#AF8DC3', '#7FBF7B'))
+  pal5 = colorRampPalette(col.use)
   pairs (def_df[,4:length(def_df)], lower.panel = NULL, #write all the environmental combinations
          pch = 1+def_df[,3], col = pal5(length(unique(def_df[,3])))[def_df[,3]], cex = 0.5) #HERE MAYBE ADD SAME SYMBOLS AS IN THE MAP! 
   
