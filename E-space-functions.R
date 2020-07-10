@@ -11,8 +11,7 @@
 #'   area.
 #' @param pflag logic, indicating if the results should be plotted.
 #' @param col.use vector of lenght two with the colors to be used in plots
-#' @param wrld_crs coordinate reference system to be used in the plots.
-#' The default is using the CRS of the data wrld_simpl.
+#' @param wrld_map reference map used to plot in geographic space; default is wrld_simpl
 #' 
 #' @return
 #' \code{e_space} returns a dataframe with the extracted values that can be used
@@ -28,13 +27,13 @@
 #' G-space.
 # CODE e_space ---------
 # Dependencies: maptools, wrld_simpl, raster 
-e_space <- function(stck,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
+e_space <- function(stck,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
   # transform raster into referenced points and into a data frame
   pts1 = data.frame(rasterToPoints(stck, fun = NULL))
   # Plotting if TRUE
   if(pflag){
     # transform values into spatial points to plot on map
-    pts_sp = SpatialPointsDataFrame(pts1[,1:2], pts1, proj4string = wrld_crs)
+    pts_sp = SpatialPointsDataFrame(pts1[,1:2], pts1, proj4string = crs(wrld_map))
     # create function between two colors
     if(is.null(col.use)){
       print("Please define 'col.use' using two colors")
@@ -52,10 +51,10 @@ e_space <- function(stck,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
       # plot the points that cover the area of interest
       plot(pts_sp, col = 'grey', main = 'G-space') 
       # add the boundary of the area
-      plot(wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+      plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
     }
   }
-  return (pts1) # return dataframe 
+  return(pts1) # return dataframe 
 }
 #
 #' @describeIn e_space_cat first transforms a raster stack of environmental
@@ -65,7 +64,7 @@ e_space <- function(stck,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
 #' it also displays the points into E-space and G-space.
 # CODE e_space_cat ---------
 # Dependencies: maptools, wrld_simpl, raster 
-e_space_cat <- function(stck,ctgr,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
+e_space_cat <- function(stck,ctgr,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
   # Create full dataframe of coordinates and climatic values divided by categories
   rr = list()
     # Obtain the number of categories in the raster (e.g., binary, thresholded)
@@ -81,27 +80,31 @@ e_space_cat <- function(stck,ctgr,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl))
   def_df = ldply(rr, data.frame)
   # Plotting
   if(pflag){
-    # E-space
-    dev.new()
-    # create function between two colors
-    pal5 = colorRampPalette(col.use)
-    # determine the number of categories
-    catnum = length(unique(def_df[,3]))
-    # scatter plots of all the environmental combinations
-    pairs(def_df[,4:ncol(def_df)], lower.panel = NULL, pch = 1+def_df[,3], cex = 0.5,
-           col = pal5(catnum)[def_df[,3]], main = 'E-space')
-    #HERE MAYBE ADD SAME SYMBOLS AS IN THE MAP! 
-    # G-space
-    # create SpatialPointsDataframe to obtain extent
-    pts_sp = SpatialPointsDataFrame (def_df[,1:2],def_df, proj4string = wrld_crs)
-    dev.new()
-    # plot the points that cover the area of interest and identify them with its category
-    plot(pts_sp, col = pal5(catnum)[def_df[,3]], pch = 1+def_df[,3], cex = 0.5, main = 'G-space')
-    # add the boundary of the area
-    plot(wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
-    suit_class = paste("Suitability value",unique(def_df[,3]))
-    legend('bottomleft', legend=suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
-           col = pal5(catnum))
+    if(is.null(col.use)){
+      print("Please define 'col.use' using two colors")
+    } else{
+      # E-space
+      dev.new()
+      # create function between two colors
+      pal5 = colorRampPalette(col.use)
+      # determine the number of categories
+      catnum = length(unique(def_df[,3]))
+      # scatter plots of all the environmental combinations
+      pairs(def_df[,4:ncol(def_df)], lower.panel = NULL, pch = 1+def_df[,3], cex = 0.5,
+            col = pal5(catnum)[def_df[,3]], main = 'E-space')
+      #HERE MAYBE ADD SAME SYMBOLS AS IN THE MAP! 
+      # G-space
+      # create SpatialPointsDataframe to obtain extent
+      pts_sp = SpatialPointsDataFrame(def_df[,1:2],def_df, proj4string = crs(wrld_map))
+      dev.new()
+      # plot the points that cover the area of interest and identify them with its category
+      plot(pts_sp, col = pal5(catnum)[def_df[,3]], pch = 1+def_df[,3], cex = 0.5, main = 'G-space')
+      # add the boundary of the area
+      plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+      suit_class = paste("Suitability value",unique(def_df[,3]))
+      legend('bottomleft', legend=suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
+            col = pal5(catnum))
+    }
   }
   return (def_df) #complete dataframe
 }
