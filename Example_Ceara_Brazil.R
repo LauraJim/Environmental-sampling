@@ -12,6 +12,8 @@ library (raster)
 library (rgdal)
 library (maptools)
 library (plyr)
+
+# Set global parameters
 # worldwide shapefile 
 data("wrld_simpl", package = "maptools")
 
@@ -81,8 +83,8 @@ cear_unc = mask (cear_unc, cear_buf)
 #Function 1: e_space(). Checking environments available: 
 #' Arguments for this function include: 
 #' - stck = Stack of environmental variables. 
-
-f1_cear = e_space(cear_envs)
+col1 <- c('#fde0dd', '#c51b8a')
+f1_cear = e_space(stck = cear_envs,pflag = T,col.use = col1)
 
 #' G-space is showing only partial borders since wrld_simpl lacks information 
 #' for provinces and only has information at the country level. 
@@ -91,7 +93,7 @@ f1_cear = e_space(cear_envs)
 #' Arguments for this function include: 
 #' - stck = Stack of environmental variables. 
 #' - ctgr = Stack of categorized models or individual rasters. 
-
+col2 <- c('#AF8DC3', '#7FBF7B')
 f2_cear = e_space_categorical(cear_envs, cear_mods[[3]])
 
 #' The object created is the dataframe that will be used for environmental sampling. 
