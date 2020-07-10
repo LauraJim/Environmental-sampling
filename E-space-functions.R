@@ -28,28 +28,32 @@
 #' G-space.
 # CODE e_space ---------
 # Dependencies: maptools, wrld_simpl, raster 
-e_space = function(stck,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
+e_space <- function(stck,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
   # transform raster into referenced points and into a data frame
   pts1 = data.frame(rasterToPoints(stck, fun = NULL))
   # Plotting if TRUE
   if(pflag){
     # transform values into spatial points to plot on map
     pts_sp = SpatialPointsDataFrame(pts1[,1:2], pts1, proj4string = wrld_crs)
-    # color function between two colors
-    pal5 = colorRampPalette(col.use) 
-    # vector of colors using gradient according to one environmental column
-    vct_cols = pal5(10)[as.numeric(cut(pts1[,3],breaks = 10))]
-    # E-space
-    dev.new()
-    # scatter plots of all the environmental combinations
-    pairs(pts1[,3:length(pts1)], lower.panel = NULL, col = vct_cols, main = 'E-space',
-          cex = 0.5, pch = 16)
-    # G-space
-    dev.new()
-    # plot the points that cover the area of interest
-    plot(pts_sp, col = 'grey', main = 'G-space') 
-    # add the boundary of the area
-    plot(wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+    # create function between two colors
+    if(is.null(col.use)){
+      print("Please define 'col.use' using two colors")
+    } else{
+      pal5 = colorRampPalette(col.use)
+      # vector of colors using gradient according to one environmental column
+      vct_cols = pal5(10)[as.numeric(cut(pts1[,3],breaks = 10))]
+      # E-space
+      dev.new()
+      # scatter plots of all the environmental combinations
+      pairs(pts1[,3:length(pts1)], lower.panel = NULL, col = vct_cols, main = 'E-space',
+            cex = 0.5, pch = 16)
+      # G-space
+      dev.new()
+      # plot the points that cover the area of interest
+      plot(pts_sp, col = 'grey', main = 'G-space') 
+      # add the boundary of the area
+      plot(wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+    }
   }
   return (pts1) # return dataframe 
 }
@@ -61,37 +65,44 @@ e_space = function(stck,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
 #' it also displays the points into E-space and G-space.
 # CODE e_space_cat ---------
 # Dependencies: maptools, wrld_simpl, raster 
-e_space_cat = function(stck,ctgr,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
-  
-  #1. obtain world shape and projections: 
-  data("wrld_simpl", package = "maptools") #obtain in-built world shape
-  WGS84 = crs(wrld_simpl) #obtain correct projection 
-  
-  #2. create full dataframe divided by available categories: 
-  rr = list() #empty list 
-  for (i in 1:ctgr@data@max){ #obtain the number of categories in the raster (e.g., binary, thresholded)
-    pre_ras = rasterToPoints(ctgr, fun = function(x){x == i}) #transform in loops by category
-    pre_vals = data.frame(extract (stck, pre_ras[,1:2])) #extract values from the stack
-    pre_df = cbind(pre_ras, pre_vals) #combine dataframes
-    rr[[length(rr)+1]] = pre_df #add dataframes to the empty list 
+e_space_cat <- function(stck,ctgr,pflag=F,col.use=NULL,wrld_crs=crs(wrld_simpl)){
+  # Create full dataframe of coordinates and climatic values divided by categories
+  rr = list()
+    # Obtain the number of categories in the raster (e.g., binary, thresholded)
+    for (i in 1:ctgr@data@max){
+      # use categories in raster and convert to points
+      pre_ras = rasterToPoints(ctgr, fun = function(x){x == i})
+      # extract environmental values for those points
+      pre_vals = data.frame(extract (stck, pre_ras[,1:2]))
+      # combine and save coordinates, categories, and environmental values
+      rr[[i]] = cbind(pre_ras, pre_vals)
+    }
+  # create a single dataframe with all the elemenst of the list
+  def_df = ldply(rr, data.frame)
+  # Plotting
+  if(pflag){
+    # E-space
+    dev.new()
+    # create function between two colors
+    pal5 = colorRampPalette(col.use)
+    # determine the number of categories
+    catnum = length(unique(def_df[,3]))
+    # scatter plots of all the environmental combinations
+    pairs(def_df[,4:ncol(def_df)], lower.panel = NULL, pch = 1+def_df[,3], cex = 0.5,
+           col = pal5(catnum)[def_df[,3]], main = 'E-space')
+    #HERE MAYBE ADD SAME SYMBOLS AS IN THE MAP! 
+    # G-space
+    # create SpatialPointsDataframe to obtain extent
+    pts_sp = SpatialPointsDataFrame (def_df[,1:2],def_df, proj4string = wrld_crs)
+    dev.new()
+    # plot the points that cover the area of interest and identify them with its category
+    plot(pts_sp, col = pal5(catnum)[def_df[,3]], pch = 1+def_df[,3], cex = 0.5, main = 'G-space')
+    # add the boundary of the area
+    plot(wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+    suit_class = paste("Suitability value",unique(def_df[,3]))
+    legend('bottomleft', legend=suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
+           col = pal5(catnum))
   }
-  def_df = ldply(rr, data.frame) #create a dataframe from all the elemenst of the list 
-  
-  #3. e-space
-  dev.new() #open figure space 
-  pal5 = colorRampPalette(col.use)
-  pairs (def_df[,4:length(def_df)], lower.panel = NULL, #write all the environmental combinations
-         pch = 1+def_df[,3], col = pal5(length(unique(def_df[,3])))[def_df[,3]], cex = 0.5) #HERE MAYBE ADD SAME SYMBOLS AS IN THE MAP! 
-  
-  #4. g-space
-  #create SpatialPointsDataframe to obtain extent
-  pts_sp = SpatialPointsDataFrame (def_df[,1:2],def_df, proj4string = WGS84) #transform values into spatial point dataframe for extent 
-  dev.new() #open second figure space
-  plot(pts_sp, col = pal5(length(unique(def_df[,3])))[def_df[,3]], pch = 1+def_df[,3], cex = 0.5, main = 'G-space') #plot the points 
-  plot(wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T) #add the corresponding shape 
-  suit_class = paste("Suitability value",unique(def_df[,3]))
-  legend('bottomleft', legend=suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
-         col = pal5(length(unique(def_df[,3]))))
   return (def_df) #complete dataframe
 }
 #
