@@ -117,11 +117,8 @@ e_space_cat <- function(stck,ctgr,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
 #' are in comparison to the selected background.
 # CODE e_space_cat_back ---------
 # Dependencies: maptools, wrld_simpl, raster, plyr 
-e_space_cat_back = function (stck, ctgr, bck){
-  #1. obtain world shape and projections: 
-  data("wrld_simpl", package = "maptools") #obtain in-built world shape
-  WGS84 = crs(wrld_simpl) #obtain correct projection 
-  
+e_space_cat_back = function (stck, ctgr, bck,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
+
   #2. create full dataframe divided by available categories: 
   rr = list () #empty list 
   for (i in 1:ctgr@data@max){ #obtain the number of categories in the raster (e.g., binary, thresholded)
@@ -148,10 +145,10 @@ e_space_cat_back = function (stck, ctgr, bck){
   
   #5. g-space, only target stack...background not here... 
   #create SpatialPointsDataframe to obtain extent
-  pts_sp = SpatialPointsDataFrame (def_df[,1:2],def_df, proj4string = WGS84) #transform values into spatial point dataframe for extent 
+  pts_sp = SpatialPointsDataFrame (def_df[,1:2],def_df, proj4string = crs(wrld_map)) #transform values into spatial point dataframe for extent 
   dev.new () #open second figure space
   plot (pts_sp, col = pal5(length(unique(def_df[,3])))[def_df[,3]], pch = 1+def_df[,3], cex = 0.5) #plot the points 
-  plot (wrld_simpl, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T) #add the corresponding shape 
+  plot (wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T) #add the corresponding shape 
   cat_names = paste("Suitability",unique(def_df[,3]))
   legend('bottomleft', legend=cat_names, pch = 1+unique(def_df[,3]), cex = 0.7, 
          col = pal5(length(unique(def_df[,3]))))
