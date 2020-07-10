@@ -27,7 +27,7 @@
 #' G-space.
 # CODE e_space ---------
 # Dependencies: maptools, wrld_simpl, raster 
-e_space <- function(stck,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
+e_space <- function(stck, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
   # transform raster into referenced points and into a data frame
   pts1 = data.frame(rasterToPoints(stck, fun = NULL))
   # Plotting if TRUE
@@ -64,7 +64,7 @@ e_space <- function(stck,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
 #' it also displays the points into E-space and G-space.
 # CODE e_space_cat ---------
 # Dependencies: maptools, wrld_simpl, raster 
-e_space_cat <- function(stck,ctgr,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
+e_space_cat <- function(stck, ctgr, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
   # Create full dataframe of coordinates and climatic values divided by categories
   rr = list()
     # Obtain the number of categories in the raster (e.g., binary, thresholded)
@@ -117,24 +117,19 @@ e_space_cat <- function(stck,ctgr,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
 #' are in comparison to the selected background.
 # CODE e_space_cat_back ---------
 # Dependencies: maptools, wrld_simpl, raster, plyr 
-e_space_cat_back = function (stck, ctgr, bck,pflag=F,col.use=NULL,wrld_map=wrld_simpl){
-
-  #2. create full dataframe divided by available categories: 
-  rr = list () #empty list 
-  for (i in 1:ctgr@data@max){ #obtain the number of categories in the raster (e.g., binary, thresholded)
-    pre_ras = rasterToPoints(ctgr, fun = function (x){x == i}) #transform in loops by category
-    pre_vals = data.frame (extract (stck, pre_ras[,1:2])) #extract values from the stack
-    pre_df = cbind (pre_ras, pre_vals) #combine dataframes
-    rr[[length(rr)+1]] = pre_df #add dataframes to the empty list 
-  }
-  def_df = ldply (rr, data.frame) #create a dataframe from all the elemenst of the list 
-  
-  #3. Background variables
+e_space_cat_back = function (stck, ctgr, bck, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
+  # Create full dataframe of coordinates and climatic values divided by categories
+  def_df = e_space_cat(stck=stck, ctgr=ctgr, pflag=F) 
+  # Determine the number of categories
+  catnum = length(unique(def_df[,3]))
+  # convert background into points
   bck_ras = data.frame(rasterToPoints(bck, fun = NULL))
-  bck_ras = cbind (bck_ras[,1:2],rep(length(unique (def_df[,3]))+1,length(bck_ras[,1])), #add here the rep for the total categories +1 otherwise could cause an error
-                   bck_ras[,3:length(bck_ras)])
-  names (bck_ras)[3] = names (ctgr)
-  def_df2 = rbind (bck_ras, def_df) #add the background category to the dataframe 
+  # add column with new category label (= number of categories + 1)
+  bck_ras = cbind (bck_ras[,1:2],rep(catnum+1,rnow(bck_ras)),
+                   bck_ras[,3:ncol(bck_ras)])
+  names(bck_ras)[3] = names(ctgr)
+  # combine the dataframe of the area of study with the dataframe created with the background
+  def_df2 = rbind (bck_ras, def_df)  
   
   #4. e-space
   dev.new () #open figure space 
@@ -153,7 +148,7 @@ e_space_cat_back = function (stck, ctgr, bck,pflag=F,col.use=NULL,wrld_map=wrld_
   legend('bottomleft', legend=cat_names, pch = 1+unique(def_df[,3]), cex = 0.7, 
          col = pal5(length(unique(def_df[,3]))))
 #add grey color meaning to legend
-  return (def_df2) #complete dataframe
+  return (def_df2)
 } 
 
 #
