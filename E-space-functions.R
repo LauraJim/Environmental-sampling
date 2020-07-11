@@ -26,8 +26,9 @@
 #' as extracted from the raster file; it also displays the points into E-space and
 #' G-space.
 # CODE e_space ---------
-# Dependencies: maptools, wrld_simpl, raster 
-e_space <- function(stck, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
+# Dependencies: maptools, wrld_simpl, raster
+#
+e_space <- function(stck, pflag = F, col.use = NULL, wrld_map = wrld_simpl){
   # transform raster into referenced points and into a data frame
   pts1 = data.frame(rasterToPoints(stck, fun = NULL))
   # Plotting if TRUE
@@ -63,8 +64,9 @@ e_space <- function(stck, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
 #' the suitability value of each spatial point as indicated in the ctgr file;
 #' it also displays the points into E-space and G-space.
 # CODE e_space_cat ---------
-# Dependencies: maptools, wrld_simpl, raster 
-e_space_cat <- function(stck, ctgr, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
+# Dependencies: maptools, wrld_simpl, raster
+#
+e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_simpl){
   # Create full dataframe of coordinates and climatic values divided by categories
   rr = list()
     # Obtain the number of categories in the raster (e.g., binary, thresholded)
@@ -78,7 +80,7 @@ e_space_cat <- function(stck, ctgr, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
     }
   # create a single dataframe with all the elemenst of the list
   def_df = ldply(rr, data.frame)
-  # Plotting
+  # Plotting if TRUE
   if(pflag){
     if(is.null(col.use)){
       print("Please define 'col.use' using two colors")
@@ -102,8 +104,8 @@ e_space_cat <- function(stck, ctgr, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
       # add the boundary of the area
       plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
       suit_class = paste("Suitability value",unique(def_df[,3]))
-      legend('bottomleft', legend=suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
-            col = pal5(catnum))
+      legend('bottomleft', legend = suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
+             col = pal5(catnum))
     }
   }
   return (def_df) #complete dataframe
@@ -116,40 +118,48 @@ e_space_cat <- function(stck, ctgr, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
 #' environments are used, it depicts how different environemnts of the models
 #' are in comparison to the selected background.
 # CODE e_space_cat_back ---------
-# Dependencies: maptools, wrld_simpl, raster, plyr 
-e_space_cat_back = function (stck, ctgr, bck, pflag=F, col.use=NULL, wrld_map=wrld_simpl){
+# Dependencies: maptools, wrld_simpl, raster, plyr
+#
+e_space_cat_back = function(stck, ctgr, bck, pflag = F, col.use = NULL, wrld_map = wrld_simpl){
   # Create full dataframe of coordinates and climatic values divided by categories
-  def_df = e_space_cat(stck=stck, ctgr=ctgr, pflag=F) 
+  def_df = e_space_cat(stck = stck, ctgr = ctgr, pflag = F) 
   # Determine the number of categories
   catnum = length(unique(def_df[,3]))
   # convert background into points
   bck_ras = data.frame(rasterToPoints(bck, fun = NULL))
   # add column with new category label (= number of categories + 1)
-  bck_ras = cbind (bck_ras[,1:2],rep(catnum+1,rnow(bck_ras)),
-                   bck_ras[,3:ncol(bck_ras)])
+  bck_ras = cbind(bck_ras[,1:2], rep(catnum+1,nrow(bck_ras)), bck_ras[,3:ncol(bck_ras)])
   names(bck_ras)[3] = names(ctgr)
   # combine the dataframe of the area of study with the dataframe created with the background
-  def_df2 = rbind (bck_ras, def_df)  
-  
-  #4. e-space
-  dev.new () #open figure space 
-  #mycols = c(brewer.pal(n = length(unique(def_df[,3])), name = 'PRGn'), 'grey')
-  pal5 = colorRampPalette(c('#AF8DC3', '#7FBF7B'))
-  pairs (def_df2[,4:length(def_df2)], lower.panel = NULL, #write all the environmental combinations
-         pch = 1 , col = c(pal5(length(unique(def_df[,3]))), 'grey')[def_df2[,3]], cex = 0.5)
-  
-  #5. g-space, only target stack...background not here... 
-  #create SpatialPointsDataframe to obtain extent
-  pts_sp = SpatialPointsDataFrame (def_df[,1:2],def_df, proj4string = crs(wrld_map)) #transform values into spatial point dataframe for extent 
-  dev.new () #open second figure space
-  plot (pts_sp, col = pal5(length(unique(def_df[,3])))[def_df[,3]], pch = 1+def_df[,3], cex = 0.5) #plot the points 
-  plot (wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T) #add the corresponding shape 
-  cat_names = paste("Suitability",unique(def_df[,3]))
-  legend('bottomleft', legend=cat_names, pch = 1+unique(def_df[,3]), cex = 0.7, 
-         col = pal5(length(unique(def_df[,3]))))
-#add grey color meaning to legend
+  def_df2 = rbind(bck_ras, def_df)  
+  # Plotting if TRUE
+  if(pflag){
+    if(is.null(col.use)){
+      print("Please define 'col.use' using two colors")
+    } else{
+      # E-space
+      dev.new ()
+      # create function between two colors
+      pal5 = colorRampPalette(col.use)
+      # scatter plots of all the environmental combinations
+      pairs (def_df2[,4:ncol(def_df2)], lower.panel = NULL, main = 'E-space', pch = 1,
+             col = c(pal5(catnum), 'grey')[def_df2[,3]], cex = 0.8)
+      # Transform values into spatial point dataframe 
+      pts_sp = SpatialPointsDataFrame (def_df2[,1:2],def_df2, proj4string = crs(wrld_map))
+      # G-space
+      dev.new ()
+      # plot the points
+      plot (pts_sp, col = c(pal5(catnum), 'grey')[def_df2[,3]], pch = 1+def_df2[,3], cex = 0.5)
+      # add the region of the world
+      plot (wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+      # add legend
+      cat_names = paste("Suitability",unique(def_df[,3]))
+      legend('bottomleft', legend=cat_names, pch = 1+unique(def_df2[,3]), cex = 0.7,
+             col = c(pal5(catnum), 'grey'))
+    }
+  }
   return (def_df2)
 } 
 
-#
+# END
 # Daniel Romero-Alvarez & Laura Jimenez, 2020
