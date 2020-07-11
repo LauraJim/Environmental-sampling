@@ -47,6 +47,7 @@ BR$name #Check names of the province, in this case Ceará
 
 cear = subset (provs, name == 'Ceará')
 cear_buf = buffer (cear, width = 0.2, dissolve = T) 
+cear_buf2 = buffer (cear, width = 0.5, dissolve = T) 
 
 #' we create a buffer to assure that all pixels from the environmnetal rasters,  
 #' categorized models and uncertainty maps are captured
@@ -57,6 +58,8 @@ cear_buf = buffer (cear, width = 0.2, dissolve = T)
 #Crop and mask environmental variables
 cear_envs = crop (all_envs, cear_buf)
 cear_envs = mask (cear_envs, cear_buf)
+cear_envs2 = crop (all_envs, cear_buf2)
+cear_envs2 = mask (cear_envs2, cear_buf2)
 #plot (cear_envs[[1]])
 
 #Crop and mask categorized rasters: 
@@ -94,7 +97,7 @@ f1_cear = e_space(stck = cear_envs,pflag = T,col.use = col1)
 #' - stck = Stack of environmental variables. 
 #' - ctgr = Stack of categorized models or individual rasters. 
 col2 <- c('#AF8DC3', '#7FBF7B')
-f2_cear = e_space_categorical(cear_envs, cear_mods[[3]])
+f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.use = col2)
 
 #' The object created is the dataframe that will be used for environmental sampling. 
 #' We are using the raster corresponding to the not-extrapolation result (NE), 
@@ -105,8 +108,8 @@ f2_cear = e_space_categorical(cear_envs, cear_mods[[3]])
 #' - stck = Stack of environmental variables. 
 #' - ctgr = Stack of categorized models or individual rasters. 
 #' - bck = Stack of environemntal variables to use as background. 
-
-f3_cear = e_space_cat_back(cear_envs, cear_mods[[3]], cear_envs)
+col3 <- c('#AF8DC3', '#7FBF7B')
+f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]], bck = cear_envs2, pflag = T, col.use = col2)
 
 #' This function allows to check the presence of regions not used by the model 
 #' but that are present in the studied area (grey points). Because the majority of Ceará presents 
