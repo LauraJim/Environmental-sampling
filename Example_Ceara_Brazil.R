@@ -87,7 +87,7 @@ cear_unc = mask (cear_unc, cear_buf)
 #' Arguments for this function include: 
 #' - stck = Stack of environmental variables. 
 col1 <- c('#fde0dd', '#c51b8a')
-f1_cear = e_space(stck = cear_envs,pflag = T,col.use = col1)
+f1_cear = e_space(stck = cear_envs,pflag = T)
 
 #' G-space is showing only partial borders since wrld_simpl lacks information 
 #' for provinces and only has information at the country level. 
@@ -108,7 +108,7 @@ f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.us
 #' - stck = Stack of environmental variables. 
 #' - ctgr = Stack of categorized models or individual rasters. 
 #' - bck = Stack of environemntal variables to use as background. 
-col3 <- c('#AF8DC3', '#7FBF7B')
+col3 <- c("blueviolet", "springgreen3")
 f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]], bck = cear_envs2, pflag = T, col.use = col3)
 
 #' This function allows to check the presence of regions not used by the model 
