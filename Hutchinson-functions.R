@@ -46,10 +46,9 @@ hutchinson_e_g <- function(data, calls, plyg, ntr, col.use = NULL){
       # left click to create points, right click to finish
       ss = fhs(data.frame(data[,calls]),pch=1+j)
       transects[[j]] = cbind(as.matrix(data[ss,]),rep(j,length(ss)))
-      #transects[[j]] = cbind(as.matrix(data[ss[1:length(ss)],]),rep(j,length(ss)))
     }
     all.tr = data.frame(do.call(rbind,transects)) #I left it as a dataframe, originally matrix  #POTENTIALLY ELIMINATE DUPLICATES 
-    names(all.tr[,ncol(data)+1]) <- transects
+    names(all.tr[,ncol(data)+1]) <- "transects" # CHANGE!!!
     # Plot 2: geography
     dev.new()
     plot (plyg, main = "G-space")
