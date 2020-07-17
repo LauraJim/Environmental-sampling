@@ -1,9 +1,23 @@
 # WORKED EXAMPLE
 
+# Read R code ----------------
+# These three scripts contain the functions needed for the analyses
 source("E-space-functions.R")
 source("Hutchinson-functions.R")
+source("Post-track-function.R")
 
-##### UPLOADING DATA
+# Load packages -------------
+library (gatepoints)
+library (raster)
+library (rgdal)
+library (maptools)
+library (plyr)
+
+# Set global parameters
+# worldwide shapefile 
+data("wrld_simpl", package = "maptools")
+
+# Read data -----------------
 #Available data (folders): 
 
 #' categorized_models: models categorized using four thresholds as described in the main text
@@ -11,9 +25,6 @@ source("Hutchinson-functions.R")
 #' environemntal_variables: The set of environmental variables selected in the modeling process
 #' shapefiles: Shapefiles to depict results presented 
 #' uncertainty_models: Interquartile range of the bootstrap models using the selected parameters
-
-#retrieving simple worldwide shapefile 
-data("wrld_simpl", package = "maptools")
 
 #reading environmental variables (n = 4) 
 all_envs = stack (list.files('./environmental_variables', full.names = T))
@@ -36,6 +47,7 @@ BR$name #Check names of the province, in this case Ceará
 
 cear = subset (provs, name == 'Ceará')
 cear_buf = buffer (cear, width = 0.2, dissolve = T) 
+cear_buf2 = buffer (cear, width = 0.5, dissolve = T) 
 
 #' we create a buffer to assure that all pixels from the environmnetal rasters,  
 #' categorized models and uncertainty maps are captured
@@ -46,6 +58,8 @@ cear_buf = buffer (cear, width = 0.2, dissolve = T)
 #Crop and mask environmental variables
 cear_envs = crop (all_envs, cear_buf)
 cear_envs = mask (cear_envs, cear_buf)
+cear_envs2 = crop (all_envs, cear_buf2)
+cear_envs2 = mask (cear_envs2, cear_buf2)
 #plot (cear_envs[[1]])
 
 #Crop and mask categorized rasters: 
@@ -72,8 +86,8 @@ cear_unc = mask (cear_unc, cear_buf)
 #Function 1: e_space(). Checking environments available: 
 #' Arguments for this function include: 
 #' - stck = Stack of environmental variables. 
-
-f1_cear = e_space(cear_envs)
+col1 <- c('#fde0dd', '#c51b8a')
+f1_cear = e_space(stck = cear_envs,pflag = T,col.use = col1)
 
 #' G-space is showing only partial borders since wrld_simpl lacks information 
 #' for provinces and only has information at the country level. 
@@ -82,8 +96,8 @@ f1_cear = e_space(cear_envs)
 #' Arguments for this function include: 
 #' - stck = Stack of environmental variables. 
 #' - ctgr = Stack of categorized models or individual rasters. 
-
-f2_cear = e_space_categorical(cear_envs, cear_mods[[3]])
+col2 <- c('#AF8DC3', '#7FBF7B')
+f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.use = col2)
 
 #' The object created is the dataframe that will be used for environmental sampling. 
 #' We are using the raster corresponding to the not-extrapolation result (NE), 
@@ -94,8 +108,8 @@ f2_cear = e_space_categorical(cear_envs, cear_mods[[3]])
 #' - stck = Stack of environmental variables. 
 #' - ctgr = Stack of categorized models or individual rasters. 
 #' - bck = Stack of environemntal variables to use as background. 
-
-f3_cear = e_space_cat_back(cear_envs, cear_mods[[3]], cear_envs)
+col3 <- c('#AF8DC3', '#7FBF7B')
+f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]], bck = cear_envs2, pflag = T, col.use = col2)
 
 #' This function allows to check the presence of regions not used by the model 
 #' but that are present in the studied area (grey points). Because the majority of Ceará presents 
