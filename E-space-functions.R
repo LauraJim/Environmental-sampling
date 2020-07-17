@@ -14,12 +14,12 @@
 #' @param wrld_map reference map used to plot in geographic space; default is wrld_simpl
 #' 
 #' @return
-#' \code{e_space} returns a dataframe with the extracted values that can be used
-#' for other kinds of visualizations.
+#' \code{e_space} returns a dataframe with the extracted environmental values
+#' that can be used for other kinds of visualizations.
 #' \code{e_space_cat} returns a dataframe necessary for applying the environmental
 #' sampling functions.
 #' \code{e_space_cat_back} returns a dataframe that includes the background
-#' category added as a new category in the examination. 
+#' as a new category. 
 #' 
 #' @describeIn e_space transforms a raster stack of environmental variables into
 #' a dataframe that contains the geographic coordinates and environmental values
