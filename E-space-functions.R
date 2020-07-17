@@ -28,7 +28,7 @@
 # CODE e_space ---------
 # Dependencies: maptools, wrld_simpl, raster
 #
-e_space <- function(stck, pflag = F, col.use = NULL, wrld_map = wrld_simpl){
+e_space <- function(stck, pflag = F, wrld_map = wrld_simpl){
   # transform raster into referenced points and into a data frame
   pts1 = data.frame(rasterToPoints(stck, fun = NULL))
   # Plotting if TRUE
@@ -36,24 +36,16 @@ e_space <- function(stck, pflag = F, col.use = NULL, wrld_map = wrld_simpl){
     # transform values into spatial points to plot on map
     pts_sp = SpatialPointsDataFrame(pts1[,1:2], pts1, proj4string = crs(wrld_map))
     # create function between two colors
-    if(is.null(col.use)){
-      print("Please define 'col.use' using two colors")
-    } else{
-      pal5 = colorRampPalette(col.use)
-      # vector of colors using gradient according to one environmental column
-      vct_cols = pal5(10)[as.numeric(cut(pts1[,3],breaks = 10))]
-      # E-space
-      dev.new()
-      # scatter plots of all the environmental combinations
-      pairs(pts1[,3:length(pts1)], lower.panel = NULL, col = vct_cols, main = 'E-space',
-            cex = 0.5, pch = 16)
-      # G-space
-      dev.new()
-      # plot the points that cover the area of interest
-      plot(pts_sp, col = 'grey', main = 'G-space') 
-      # add the boundary of the area
-      plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
-    }
+    # E-space
+    dev.new()
+    # scatter plots of all the environmental combinations
+    pairs(pts1[,3:length(pts1)], lower.panel = NULL, main = 'E-space', pch = 1, cex=0.8)
+    # G-space
+    dev.new()
+    # plot the points that cover the area of interest
+    plot(pts_sp, col = 'grey', main = 'G-space') 
+    # add the boundary of the area
+    plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
   }
   return(pts1) # return dataframe 
 }
@@ -94,7 +86,9 @@ e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_s
       # scatter plots of all the environmental combinations
       pairs(def_df[,4:ncol(def_df)], lower.panel = NULL, pch = 1+def_df[,3], cex = 0.5,
             col = pal5(catnum)[def_df[,3]], main = 'E-space')
-      #HERE MAYBE ADD SAME SYMBOLS AS IN THE MAP! 
+      par(xpd = TRUE)
+      suit_class = paste("Suitability value",unique(def_df[,3]))
+      legend("bottomleft", fill=pal5(catnum), legend=suit_class)
       # G-space
       # create SpatialPointsDataframe to obtain extent
       pts_sp = SpatialPointsDataFrame(def_df[,1:2],def_df, proj4string = crs(wrld_map))
@@ -103,7 +97,6 @@ e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_s
       plot(pts_sp, col = pal5(catnum)[def_df[,3]], pch = 1+def_df[,3], cex = 0.5, main = 'G-space')
       # add the boundary of the area
       plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
-      suit_class = paste("Suitability value",unique(def_df[,3]))
       legend('bottomleft', legend = suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
              col = pal5(catnum))
     }
@@ -142,20 +135,22 @@ e_space_cat_back = function(stck, ctgr, bck, pflag = F, col.use = NULL, wrld_map
       # create function between two colors
       pal5 = colorRampPalette(col.use)
       # scatter plots of all the environmental combinations
-      pairs(def_df2[,4:ncol(def_df2)], lower.panel = NULL, main = 'E-space', pch = 1,
-             col = c(pal5(catnum), 'grey')[def_df2[,3]], cex = 0.8)
+      pairs(def_df2[,4:ncol(def_df2)], lower.panel = NULL, main = 'E-space', pch = 20,
+             col = c(pal5(catnum),'grey')[def_df2[,3]])
+      par(xpd = TRUE)
+      cat_names = paste("Suitability",unique(def_df[,3]))
+      legend("bottomleft", fill=c(pal5(catnum), 'grey'), legend=c(cat_names,"Background"))
       # Transform values into spatial point dataframe 
-      pts_sp = SpatialPointsDataFrame(def_df2[,1:2],def_df2, proj4string = crs(wrld_map))
+      pts_sp = SpatialPointsDataFrame(def_df[,1:2],def_df, proj4string = crs(wrld_map))
       # G-space
       dev.new()
       # plot the points
-      plot(pts_sp, col = c(pal5(catnum), 'grey')[def_df2[,3]], pch = 1+def_df2[,3], cex = 0.5)
+      plot(pts_sp, col = pal5(catnum)[def_df[,3]], pch = 1+def_df[,3], cex = 0.6)
       # add the region of the world
       plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
       # add legend
-      cat_names = paste("Suitability",unique(def_df[,3]))
-      legend('bottomleft', legend=cat_names, pch = 1+unique(def_df2[,3]), cex = 0.7,
-             col = c(pal5(catnum), 'grey'))
+      legend('bottomleft', legend=cat_names, pch = 1+unique(def_df[,3]), cex = 0.7,
+             col = pal5(catnum))
     }
   }
   return (def_df2)
