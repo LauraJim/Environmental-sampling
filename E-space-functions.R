@@ -64,7 +64,7 @@ e_space <- function(stck, pflag = F, col.use = NULL, wrld_map = wrld_simpl){
 #' the suitability value of each spatial point as indicated in the ctgr file;
 #' it also displays the points into E-space and G-space.
 # CODE e_space_cat ---------
-# Dependencies: maptools, wrld_simpl, raster
+# Dependencies: maptools, wrld_simpl, raster, plyr
 #
 e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_simpl){
   # Create full dataframe of coordinates and climatic values divided by categories
@@ -108,7 +108,7 @@ e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_s
              col = pal5(catnum))
     }
   }
-  return (def_df) #complete dataframe
+  return(def_df) #complete dataframe
 }
 #
 #' @describeIn e_space  allows the comparison of all the environmental spaces vs
@@ -118,7 +118,7 @@ e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_s
 #' environments are used, it depicts how different environemnts of the models
 #' are in comparison to the selected background.
 # CODE e_space_cat_back ---------
-# Dependencies: maptools, wrld_simpl, raster, plyr
+# Dependencies: maptools, wrld_simpl, raster, plyr, e_space_cat
 #
 e_space_cat_back = function(stck, ctgr, bck, pflag = F, col.use = NULL, wrld_map = wrld_simpl){
   # Create full dataframe of coordinates and climatic values divided by categories
@@ -138,20 +138,20 @@ e_space_cat_back = function(stck, ctgr, bck, pflag = F, col.use = NULL, wrld_map
       print("Please define 'col.use' using two colors")
     } else{
       # E-space
-      dev.new ()
+      dev.new()
       # create function between two colors
       pal5 = colorRampPalette(col.use)
       # scatter plots of all the environmental combinations
-      pairs (def_df2[,4:ncol(def_df2)], lower.panel = NULL, main = 'E-space', pch = 1,
+      pairs(def_df2[,4:ncol(def_df2)], lower.panel = NULL, main = 'E-space', pch = 1,
              col = c(pal5(catnum), 'grey')[def_df2[,3]], cex = 0.8)
       # Transform values into spatial point dataframe 
-      pts_sp = SpatialPointsDataFrame (def_df2[,1:2],def_df2, proj4string = crs(wrld_map))
+      pts_sp = SpatialPointsDataFrame(def_df2[,1:2],def_df2, proj4string = crs(wrld_map))
       # G-space
-      dev.new ()
+      dev.new()
       # plot the points
-      plot (pts_sp, col = c(pal5(catnum), 'grey')[def_df2[,3]], pch = 1+def_df2[,3], cex = 0.5)
+      plot(pts_sp, col = c(pal5(catnum), 'grey')[def_df2[,3]], pch = 1+def_df2[,3], cex = 0.5)
       # add the region of the world
-      plot (wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+      plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
       # add legend
       cat_names = paste("Suitability",unique(def_df[,3]))
       legend('bottomleft', legend=cat_names, pch = 1+unique(def_df2[,3]), cex = 0.7,
