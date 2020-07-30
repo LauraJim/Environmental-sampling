@@ -87,7 +87,7 @@ cear_unc = mask (cear_unc, cear_buf)
 #' Arguments for this function include: 
 #' - stck = Stack of environmental variables. 
 col1 <- c('#fde0dd', '#c51b8a')
-f1_cear = e_space(stck = cear_envs,pflag = T,col.use = col1)
+f1_cear = e_space(stck = cear_envs,pflag = T)
 
 #' G-space is showing only partial borders since wrld_simpl lacks information 
 #' for provinces and only has information at the country level. 
@@ -108,8 +108,8 @@ f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.us
 #' - stck = Stack of environmental variables. 
 #' - ctgr = Stack of categorized models or individual rasters. 
 #' - bck = Stack of environemntal variables to use as background. 
-col3 <- c('#AF8DC3', '#7FBF7B')
-f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]], bck = cear_envs2, pflag = T, col.use = col2)
+col3 <- c("blueviolet", "springgreen3")
+f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]], bck = cear_envs2, pflag = T, col.use = col3)
 
 #' This function allows to check the presence of regions not used by the model 
 #' but that are present in the studied area (grey points). Because the majority of Ceará presents 
@@ -126,9 +126,10 @@ f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]], bck = cear_e
 #' - ntr = Number of selections that should be done in the plot.
 
 names (f2_cear) #select the columns for the calls argument, use the environemtnal values
-f4_cear_tmp_hum = hutchinson_e_g(f2_cear, c(6, 4), cear, 3)
-f4_cear_tmp_soil = hutchinson_e_g(f2_cear, c(6, 5), cear, 3)
-f4_cear_hum_soil = hutchinson_e_g(f2_cear, c(4, 5), cear, 3)
+#f4_cear_tmp_hum = hutchinson_e_g(f2_cear, c(6, 4), cear, 3)
+#f4_cear_tmp_soil = hutchinson_e_g(f2_cear, c(6, 5), cear, 3)
+#f4_cear_hum_soil = hutchinson_e_g(f2_cear, c(4, 5), cear, 3)
+cear_tmp_hum = hutchinson_e_g(data=f2_cear, calls=c(6, 4), cear, 3,col1)
 
 #' Here the excercise of sampling has the idea to maximize different suitability 
 #' classess in the environmental dimensions selected, considering pair-wise associations.
