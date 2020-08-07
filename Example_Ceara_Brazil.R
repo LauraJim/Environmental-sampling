@@ -7,11 +7,12 @@ source("Hutchinson-functions.R")
 source("Post-track-function.R")
 
 # Load packages -------------
-library (gatepoints)
-library (raster)
-library (rgdal)
-library (maptools)
-library (plyr)
+library(gatepoints)
+library(raster)
+library(rgdal)
+library(maptools)
+library(plyr)
+library(sp)
 
 # Set global parameters
 # worldwide shapefile 
@@ -91,18 +92,20 @@ plot(cear_unc[[3]])
 # Select color ramp to be used in the visualizations
 col <- c("blueviolet", "springgreen3")
 
-#Function 1: e_space(
+# FUNCTION 1: e_space
+
 # Displaying the environmental variables in E-space
 # and the region covered by the layers in G-space
 f1_cear = e_space(stck = cear_envs,pflag = T)
 
-#Function 2: e_space_cat()
+# FUNCTION 2: e_space_cat
+
 # Displaying the environmental variables in E-space using different colors for different
 # suitability categories and the sites that cover the region of interest also labeled
 # according to its suitability category
 f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.use = col)
 
-#Function 3: e_space_cat_back()
+# FUNCTION 3: e_space_cat_back
 # The output plots are similar to the ones obtained with the function e_space_cat()
 # except that in this case there is a new category of points called Background
 # Background points are inside the region of interest but they have no suitability
@@ -110,64 +113,50 @@ f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.us
 f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]],
                            bck = cear_envs2, pflag = T, col.use = col)
 
-#Function 4: hutchinson_e_g(). Sampling from E-space, maximizing suitability classes
-#' Arguments for this function include: 
-#' - data = Data frame obtained with e_space_categorical function.
-#' - calls = Columns with environmental values that should be used for the plots.
-#' - pgly = Polygon to depict G-Space.
-#' - ntr = Number of selections that should be done in the plot.
+# FUNCTION 4: hutchinson
 
-names (f2_cear) #select the columns for the calls argument, use the environemtnal values
-#f4_cear_tmp_hum = hutchinson_e_g(f2_cear, c(6, 4), cear, 3)
-#f4_cear_tmp_soil = hutchinson_e_g(f2_cear, c(6, 5), cear, 3)
-#f4_cear_hum_soil = hutchinson_e_g(f2_cear, c(4, 5), cear, 3)
-cear_tmp_hum = hutchinson_e_g(data=f2_cear, calls=c(6, 4), cear, 3,col1)
+# Option 1: from E-space to G-space
+# Select the columns that contain the enviromental variables to be plotted
+# and use them as the 'calls' argument of this function
+names (f2_cear) 
+# temperature & humidity
+cear_tmp_hum = hutchinson(EtoG=T, data=f2_cear, calls=c(6,4), plyg=cear, ntr=3, col.use=col)
+# temperature & soil
+cear_tmp_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(6,5), plyg=cear, ntr=3, col.use=col)
+# humidity & soil
+cear_hum_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(4,5), plyg=cear, ntr=3, col.use=col)
 
-#' Here the excercise of sampling has the idea to maximize different suitability 
-#' classess in the environmental dimensions selected, considering pair-wise associations.
-#' Because principal component 1 recovers the majority of the variability in the environmental  
-#' sets used, we sample in three plots considering PC1 for temperature and PC1 for humidity 
-#' PC1 for temperature and PC1 for soils and PC1 for humidity and PC1 from soils. 
+# Option 1: from G-space to E-space
+# temperature & humidity
+cear2_tmp_hum = hutchinson(EtoG=F, data=f2_cear, calls=c(6,4), plyg=cear, ntr=3, col.use=col)
+# temperature & soil
+cear2_tmp_soil = hutchinson(EtoG=F, data=f2_cear, calls=c(6,5), plyg=cear, ntr=3, col.use=col)
+# humidity & soil
+cear2_hum_soil = hutchinson(EtoG=F, data=f2_cear, calls=c(4,5), plyg=cear, ntr=3, col.use=col)
 
-#combining the dataframes: 
-cear_sampling = rbind (f4_cear_tmp_hum, f4_cear_tmp_soil, f4_cear_hum_soil)
 
-#' By combining all the dataframes we have all the pixels considering the different 
-#' tracks selected in three different environmental scenarios. 
+# The sampling exercise has the goal of maximizing the selection of different suitability
+# categories with the selection of different transects in either E-space or G-space.
+# Therefore, once the transects are selected, a final step will be to check the levels
+# of uncertainty in the selected sites:
 
-#Function 6: post_track(). Checking uncertainty in selected environmental tracks: 
-#' Arguments in this function include: 
-#' - data_track = Dataframe obtained using function 4 or 5 with different track categories. 
-#' - uncert_ras = Raster containing measures of uncertainty for the model assessed. 
-#' - pgly = Shape file to depict G-space.
+# FUNCTION 5: post_track()
 
-f6_cear = post_track(cear_sampling, cear_unc[[3]], cear)
-
-#' Because different environmental tracks were selected using different environemtnal 
-#' values, some information might be repeated, for that, post_track functions eliminates
-#' duplicates for producing its final object. 
-
+# Combine the dataframes if your are willing to include more than two environmental variables
+cear_sampling = rbind(cear_tmp_hum, cear_tmp_soil, cear_hum_soil)
 dim(cear_sampling)
-dim(f6_cear)
 
-#Writing final results tables for further manipulation and figure! 
-write.csv (f2_cear, './ceara_df1.csv', row.names = F)
-write.csv (f6_cear, './ceara_res.csv', row.names = F)
+# Select uncertainty layer and apply function
+uncer_check = post_track(cear_sampling, cear_unc[[3]], cear)
 
+#' Because different environmental tracks were selected using different environmental 
+#' variables, some information might be repeated, however, the post_track function
+#' eliminates duplicates
+dim(uncer_check)
 
-#Function 5: hutchinson_g_e(). Sampling from G-space, maximizing suitability classes: 
-#' Arguments in this function include: 
-#' - data = Data frame obtained with e_space_categorical function.
-#' - calls = Columns with environmental values that should be used for the plots.
-#' - pgly = Polygon to depict G-Space.
-#' - ntr = Number of selections that should be done in the plot.
-
-names (f2_cear) #select the columns for the calls argument, use the environemtnal values
-f5_cear = hutchinson_g_e(f2_cear, c(5, 4), cear, 3)
-
-#' This function has the same ability as function 4 but allows to create transects 
-#' in the geographical space and then examined the transects in the desired environments 
-#' 
+# Save resulting tables for further analyses and visualizations
+write.csv(f2_cear, './ceara_df1.csv', row.names = F)
+write.csv(uncer_check, './ceara_res.csv', row.names = F)
 
 #
 # Daniel Romero-Alvarez & Laura Jimenez, 2020
