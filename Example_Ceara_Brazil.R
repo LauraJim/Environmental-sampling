@@ -51,7 +51,8 @@ BR$name
 cear = subset (provs, name == 'Ceará')
 # Create a buffer around the region of interest
 # this is to guarantee that all pixels in the raster layers are captured
-cear_buf = buffer(cear, width = 0.2, dissolve = T) 
+cear_buf = buffer(cear, width = 0.2, dissolve = T)
+# you can used different buffer sizes
 cear_buf2 = buffer(cear, width = 0.5, dissolve = T) 
 # Plot regions to verify our selection
 x11()
@@ -59,68 +60,55 @@ plot(cear)
 plot(cear_buf,add=T)
 plot(cear_buf2,add=T)
 
-#Crop and mask environmental variables
-cear_envs = crop (all_envs, cear_buf)
-cear_envs = mask (cear_envs, cear_buf)
-cear_envs2 = crop (all_envs, cear_buf2)
-cear_envs2 = mask (cear_envs2, cear_buf2)
-#plot (cear_envs[[1]])
+# Crop and mask rasters -----------------
 
-#Crop and mask categorized rasters: 
-cear_mods = crop (cat_models, cear_buf)
-cear_mods= mask (cear_mods, cear_buf)
-#plot (cear_mods[[3]]) 
+# Environmental variables
+cear_envs = crop(all_envs, cear_buf)
+cear_envs = mask(cear_envs, cear_buf)
+# plot one of the layers to verify that the process was done correctly
+plot (cear_envs[[1]])
 
-#' cear_mods contains 3 raster files corresponding to categorized models 
-#' using the no extrapolation (NE), extrapolation (E), and extrapolation and 
-#' clamping (EC) maxent functions to transfer models to a desired area. 
-#' We are selecting the third raster which corresponds to NE. 
+# Categorized rasters
+# Note: cear_mods contains 3 raster files corresponding to categorized models 
+# using the no extrapolation (NE), extrapolation (E), and extrapolation and 
+# clamping (EC) features from Maxent to transfer models to a given area. 
+# We will work with the third raster which corresponds to NE. 
+cear_mods = crop(cat_models, cear_buf)
+cear_mods= mask(cear_mods, cear_buf)
+# plot one of the layers to verify that the process was done correctly
+plot (cear_mods[[3]]) 
 
-#Crop and mask uncertainty maps: 
-cear_unc = crop (uncert_models, cear_buf)
-cear_unc = mask (cear_unc, cear_buf)
-#plot(cear_unc[[3]])
+# Uncertainty maps
+# The uncertainty plots are available for all the transfered rasters including 
+# NE, E, and EC. We will use the NE layer throughout this example. 
+cear_unc = crop(uncert_models, cear_buf)
+cear_unc = mask(cear_unc, cear_buf)
+# plot one of the layers to verify that the process was done correctly
+plot(cear_unc[[3]])
 
-#' Uncertainty plots are available for all the transfered rasters including 
-#' NE, E, and EC. We are selecting the uncertainty for NE which is the raster
-#' we are using for this excercise. 
+# Using functions -------------------------------------
 
-#Using functions: 
+# Select color ramp to be used in the visualizations
+col <- c("blueviolet", "springgreen3")
 
-#Function 1: e_space(). Checking environments available: 
-#' Arguments for this function include: 
-#' - stck = Stack of environmental variables. 
-col1 <- c('#fde0dd', '#c51b8a')
+#Function 1: e_space(
+# Displaying the environmental variables in E-space
+# and the region covered by the layers in G-space
 f1_cear = e_space(stck = cear_envs,pflag = T)
 
-#' G-space is showing only partial borders since wrld_simpl lacks information 
-#' for provinces and only has information at the country level. 
+#Function 2: e_space_cat()
+# Displaying the environmental variables in E-space using different colors for different
+# suitability categories and the sites that cover the region of interest also labeled
+# according to its suitability category
+f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.use = col)
 
-#Function 2: e_space_categorical(). Creating dataframe for environemntal sampling: 
-#' Arguments for this function include: 
-#' - stck = Stack of environmental variables. 
-#' - ctgr = Stack of categorized models or individual rasters. 
-col2 <- c('#AF8DC3', '#7FBF7B')
-f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.use = col2)
-
-#' The object created is the dataframe that will be used for environmental sampling. 
-#' We are using the raster corresponding to the not-extrapolation result (NE), 
-#' therefore, just the third object from the raster stack cear_mods
-
-#Function 3: e_space_cat_back(). Suitability vs background environemnts: 
-#' Arguments for this function include: 
-#' - stck = Stack of environmental variables. 
-#' - ctgr = Stack of categorized models or individual rasters. 
-#' - bck = Stack of environemntal variables to use as background. 
-col3 <- c("blueviolet", "springgreen3")
-f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]], bck = cear_envs2, pflag = T, col.use = col3)
-
-#' This function allows to check the presence of regions not used by the model 
-#' but that are present in the studied area (grey points). Because the majority of Ceará presents 
-#' a suitable category, grey areas are shown only for Humidity and Soil comparisons.
-#' The dataframe produced here should not be used for the other functions since has 
-#' an extra category corresponding to background does not corresponds to suitable 
-#' environments as determined by the model. 
+#Function 3: e_space_cat_back()
+# The output plots are similar to the ones obtained with the function e_space_cat()
+# except that in this case there is a new category of points called Background
+# Background points are inside the region of interest but they have no suitability
+# value assigned by the model
+f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]],
+                           bck = cear_envs2, pflag = T, col.use = col)
 
 #Function 4: hutchinson_e_g(). Sampling from E-space, maximizing suitability classes
 #' Arguments for this function include: 
