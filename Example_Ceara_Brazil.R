@@ -18,42 +18,46 @@ library (plyr)
 data("wrld_simpl", package = "maptools")
 
 # Read data -----------------
-#Available data (folders): 
 
 #' categorized_models: models categorized using four thresholds as described in the main text
 #' Minimum training presence, E= 5%, E= 10%, and E= 20% 
+cat_models = stack(list.files('./categorized_models', full.names = T))
+# number of layers
+length(cat_models@layers)
+
 #' environemntal_variables: The set of environmental variables selected in the modeling process
-#' shapefiles: Shapefiles to depict results presented 
+all_envs = stack(list.files('./environmental_variables', full.names = T))
+# number of layers
+length(all_envs@layers)
+
 #' uncertainty_models: Interquartile range of the bootstrap models using the selected parameters
+uncert_models = stack(list.files ('./uncertainty_models', full.names = T))
+# number of layers
+length(uncert_models@layers)
 
-#reading environmental variables (n = 4) 
-all_envs = stack (list.files('./environmental_variables', full.names = T))
+# EXAMPLE: Ceara, Brazil ---------------------
 
-#reading categorized rasters (n = 3)
-cat_models = stack (list.files ('./categorized_models', full.names = T))
+# Read shapefiles and select region of interest
 
-#reading uncertainty rasters (n = 3)
-uncert_models = stack (list.files ('./uncertainty_models', full.names = T))
-
-#####EXAMPLE 0: CEARA, BRAZIL, FULLY COMMENTED#####
-
-#####CEARA, BRAZIL##### 
-#shapefiles from Natural Earth: 
+# World shapefiles from Natural Earth: 
 provs = readOGR('./shapefiles2/ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp')
 
-#subset for specific area: 
-BR = provs@data[which (provs@data$admin =='Brazil'),] #provinces of a country 
-BR$name #Check names of the province, in this case Ceará
-
+# Select specific region: CEARA
+#   Provinces of Brazil
+BR = provs@data[which(provs@data$admin =='Brazil'),] 
+#   Look for the specifi province
+BR$name
+#  Select specific province by subsetting the data frame
 cear = subset (provs, name == 'Ceará')
-cear_buf = buffer (cear, width = 0.2, dissolve = T) 
-cear_buf2 = buffer (cear, width = 0.5, dissolve = T) 
-
-#' we create a buffer to assure that all pixels from the environmnetal rasters,  
-#' categorized models and uncertainty maps are captured
-
-#plot (cear)
-#plot (cear_buf)
+# Create a buffer around the region of interest
+# this is to guarantee that all pixels in the raster layers are captured
+cear_buf = buffer(cear, width = 0.2, dissolve = T) 
+cear_buf2 = buffer(cear, width = 0.5, dissolve = T) 
+# Plot regions to verify our selection
+x11()
+plot(cear)
+plot(cear_buf,add=T)
+plot(cear_buf2,add=T)
 
 #Crop and mask environmental variables
 cear_envs = crop (all_envs, cear_buf)
