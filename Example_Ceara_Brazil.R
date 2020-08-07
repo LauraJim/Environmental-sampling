@@ -147,7 +147,7 @@ cear_sampling = rbind(cear_tmp_hum, cear_tmp_soil, cear_hum_soil)
 dim(cear_sampling)
 
 # Select uncertainty layer and apply function
-uncer_check = post_track(cear_sampling, cear_unc[[3]], cear)
+uncer_check = post_track(cear_sampling, cear_unc[[3]], cear, col.use=col)
 
 #' Because different environmental tracks were selected using different environmental 
 #' variables, some information might be repeated, however, the post_track function
