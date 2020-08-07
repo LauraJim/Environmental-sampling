@@ -12,14 +12,14 @@
 #' @param plyg polygon that delimits the geographical space of interest.
 #' @param ntr number of transects to be drawn.
 #' @param col.use vector of lenght two with the colors to be used in plots
+#' 
 #' @return
-#' \code{hutchinson_e_g} returns a database with coordinates, values, categories,
-#' and the selected tracks.
-#' \code{hutchinson_g_e} returns a database with coordinates, values, categories,
+#' \code{hutchinson} returns a database with coordinates, values, categories,
 #' and the selected tracks.
 #' 
 #' @describeIn hutchinson plots the E-space/G-space and allows the user
 #' to select transects that are then represented in the G-space/E-space.
+#' 
 # CODE hutchinson ---------
 # Dependencies: maptools, sp
 hutchinson <- function(EtoG, data, calls, plyg, ntr, col.use = NULL){
