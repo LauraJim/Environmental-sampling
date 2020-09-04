@@ -1,12 +1,4 @@
-
 # Functions 'e_space', 'e_space_cat' and 'e_space_cat_back'
-### These three functions create data frames from a raster stack of environmental varibles,
-### with the option of including a suitability category from an SDM and a background region.
-### The resulting data frames will contain the geographic and environmental coordinates
-### of points inside the study regions that can be used for the visualization of the 
-### Hutchinson's duality.
-
-# Functions 'e_space', 'e_space_cat' and 'e_space_cat_back' ----------
 ### These three functions allow the user explore the environmental space of a particular region (e_space) and 
 ### the environmental space divided in different suitable categories as determined by the model outpus (e_space_cat).
 ### The last function allows the comparison of a particular environment to a background of the same area depicting

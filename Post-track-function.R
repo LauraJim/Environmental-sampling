@@ -1,10 +1,4 @@
-
 # Functions 'post_track'
-### This function uses the output of the 'hutchinson' function and adds an ucertainty
-### layer from the SDM to visualize the points selected for a survey. It gets rid of
-### repeated points selected in different tracks.
-
-# Functions 'post_track' ----------
 ### This function allows the cleaning of the dataframe constructed via the 'Hutchinson' function and overlap  
 ### the dataframe with a raster of the selection of the user. Here we overlap the points with the raster that 
 ### examplifies uncertainty of the final model outputs on this particular excercise. 

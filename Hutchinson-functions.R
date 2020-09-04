@@ -1,9 +1,4 @@
 # Function 'hutchinson'
-
-### This function allows to make a visualization of either the geographic or
-### the environmental representation of a set of points inside the region of study
-### and to select transects that can be used to desing a survey.
-
 ### This function works in combination with the 'e_space_cat' function available in the E_space_functions script
 ### It allows the user to create transects in any environmental space and transfer them to the geographic space 
 ### or viceversa. It can be used to further explore and select areas on the environmental dimensions used to calibrate  
