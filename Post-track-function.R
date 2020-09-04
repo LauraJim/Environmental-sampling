@@ -1,9 +1,10 @@
 # Functions 'post_track' ----------
-### This function ...
-### ...
+### This function allows the cleaning of the dataframe constructed via the 'Hutchinson' function and overlap  
+### the dataframe with a raster of the selection of the user. Here we overlap the points with the raster that 
+### examplifies uncertainty of the final model outputs on this particular excercise. 
 #
 #' @param tracks dataframe with coordinates, categories, track class
-#' @param uncert_ras raster measuring variability
+#' @param uncert_ras raster measuring variability. It can be replaced by any other raster, e.g., altitude. 
 #' @param plyg polygon that delimits the geographical space of interest
 #' @param col.use vector of lenght two with the colors to be used in plots
 #' 
@@ -14,7 +15,7 @@
 #' @describeIn post_track depicts the points selected in either the
 #' environmental or geographical sampling over the uncertainty surface
 #' calculated during model selection. It allows to see whether the
-#' points occupy high or low suitability areas.
+#' points occupy areas of high or low uncertainty.
 #' 
 # CODE post_track ---------
 # Dependencies: none
@@ -49,3 +50,7 @@ post_track = function(tracks, uncert_ras, plyg, col.use = NULL){
     return (def_unc) 
   }
 }
+
+
+# END
+# Daniel Romero-Alvarez & Laura Jimenez, 2020

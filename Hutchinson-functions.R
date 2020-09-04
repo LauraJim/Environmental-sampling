@@ -1,6 +1,8 @@
 # Function 'hutchinson'
-### These two functions ...
-### ...
+### This function works in combination with the 'e_space_cat' function available in the E_space_functions script
+### It allows the user to create transects in any environmental space and transfer them to the geographic space 
+### or viceversa. It can be used to further explore and select areas on the environmental dimensions used to calibrate  
+### the model or other environmental dimensions representing knowledge of the species niche. 
 #
 #' @param EtoG logical. If TRUE, E-space is plotted first to select transects and then,
 #'   transects are drawn in G-space. If FALSE, G-space is plotted first.
@@ -35,10 +37,10 @@ hutchinson <- function(EtoG, data, calls, plyg, ntr, col.use = NULL){
       catnum = length(unique(data[,3]))
       # Plot 1: E-space
       dev.new()
-      plot(data[,calls], col = pal5(catnum)[data[,3]], main="E-space", pch = 1+data[,3],
-           cex = 0.5, xlab = colnames(data[calls[1]]), ylab = colnames(data[calls[2]]))
-      suit_class = paste("Suitability value",unique(data[,3]))
-      legend('topleft', legend = suit_class, pch = 1+unique(data[,3]), cex = 0.7, col = pal5(catnum))
+      plot(data[,calls], col = pal5(catnum)[data[,3]], main="E-space", pch = 15,
+           cex = 0.7, xlab = colnames(data[calls[1]]), ylab = colnames(data[calls[2]]))
+      suit_class = paste("Suitability",unique(data[,3]))
+      legend('topleft', legend = suit_class, pch = 15, cex = 1, col = pal5(catnum))
       # user defines transects
       for(j in 1:ntr){
         if(j == 1){
@@ -52,8 +54,8 @@ hutchinson <- function(EtoG, data, calls, plyg, ntr, col.use = NULL){
         # subsetting the entire dataset according to the transect in which they were selected 
         transects[[j]] = cbind(as.matrix(data[ss,]),rep(j,length(ss)))
       }
-      all.tr = data.frame(do.call(rbind,transects)) #I left it as a dataframe, originally matrix  #POTENTIALLY ELIMINATE DUPLICATES 
-      names(all.tr[,ncol(data)+1]) <- "transects" # CHANGE!!!
+      all.tr = data.frame(do.call(rbind,transects))  
+      names(all.tr[,ncol(data)+1]) <- "transects" 
       # Plot 2: G-space
       dev.new()
       # add region limits
@@ -73,13 +75,13 @@ hutchinson <- function(EtoG, data, calls, plyg, ntr, col.use = NULL){
       dev.new()
       # plot points that cover the environmental region and are identified with
       # a suitability category (different colors)
-      plot(sp_ob@data[,1:2], main = "G-space", pch = 1+sp_ob@data[,3],
+      plot(sp_ob@data[,1:2], main = "G-space", pch = 15,
             col = pal5(length(unique(sp_ob@data[,3])))[sp_ob@data[,3]], cex = 0.8)
       # add region limits
       plot (plyg, add = T)
-      suit_class = paste("Suitability value",unique(sp_ob@data[,3]))
-      legend('bottomleft', legend=suit_class, pch = 1+ unique(sp_ob@data[,3]),
-             col= pal5(length(unique(sp_ob@data[,3]))), cex=0.7)
+      suit_class = paste("Suitability",unique(sp_ob@data[,3]))
+      legend('bottomleft', legend=suit_class, pch = 15,
+             col= pal5(length(unique(sp_ob@data[,3]))), cex=0.9)
        for(j in 1:ntr){
         if(j == 1){
           print("Instructions:")
@@ -107,5 +109,6 @@ hutchinson <- function(EtoG, data, calls, plyg, ntr, col.use = NULL){
   }
 }
 
-#
+
+# END
 # Daniel Romero-Alvarez & Laura Jimenez, 2020
