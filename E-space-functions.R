@@ -1,9 +1,17 @@
+
 # Functions 'e_space', 'e_space_cat' and 'e_space_cat_back'
 ### These three functions create data frames from a raster stack of environmental varibles,
 ### with the option of including a suitability category from an SDM and a background region.
 ### The resulting data frames will contain the geographic and environmental coordinates
 ### of points inside the study regions that can be used for the visualization of the 
 ### Hutchinson's duality.
+
+# Functions 'e_space', 'e_space_cat' and 'e_space_cat_back' ----------
+### These three functions allow the user explore the environmental space of a particular region (e_space) and 
+### the environmental space divided in different suitable categories as determined by the model outpus (e_space_cat).
+### The last function allows the comparison of a particular environment to a background of the same area depicting
+### unsuitable environmnents or different environemntal regions. 
+
 #
 #' @param stck raster stack containing the environmental variables of interest
 #'   cropped to the study area, it can also work as the background in function
@@ -21,7 +29,7 @@
 #' \code{e_space} returns a dataframe with the extracted environmental values
 #' that can be used for other kinds of visualizations.
 #' \code{e_space_cat} returns a dataframe necessary for applying the environmental
-#' sampling functions.
+#' sampling (Hutchinson) functions.
 #' \code{e_space_cat_back} returns a dataframe that includes the background
 #' as a new category. 
 #' 
@@ -88,7 +96,7 @@ e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_s
       # determine the number of categories
       catnum = length(unique(def_df[,3]))
       # scatter plots of all the environmental combinations
-      pairs(def_df[,4:ncol(def_df)], lower.panel = NULL, pch = 1+def_df[,3], cex = 0.5,
+      pairs(def_df[,4:ncol(def_df)], lower.panel = NULL, pch = 15, cex = 0.7,
             col = pal5(catnum)[def_df[,3]], main = 'E-space')
       par(xpd = TRUE)
       suit_class = paste("Suitability value",unique(def_df[,3]))
@@ -108,7 +116,7 @@ e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_s
   return(def_df) #complete dataframe
 }
 #
-#' @describeIn e_space  allows the comparison of all the environmental spaces vs
+#' @describeIn e_space_cat_back allows the comparison of all the environmental spaces vs
 #' a background defined as the a raster stack provided by the user. It can be the
 #' same environmental variables of the studied area to depict how much of the
 #' environemnts of the area are actually used/not used by the model. If other
@@ -139,7 +147,7 @@ e_space_cat_back = function(stck, ctgr, bck, pflag = F, col.use = NULL, wrld_map
       # create function between two colors
       pal5 = colorRampPalette(col.use)
       # scatter plots of all the environmental combinations
-      pairs(def_df2[,4:ncol(def_df2)], lower.panel = NULL, main = 'E-space', pch = 20,
+      pairs(def_df2[,4:ncol(def_df2)], lower.panel = NULL, main = 'E-space', pch = 15,
              col = c(pal5(catnum),'grey')[def_df2[,3]])
       par(xpd = TRUE)
       cat_names = paste("Suitability",unique(def_df[,3]))

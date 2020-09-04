@@ -42,12 +42,12 @@ uncert_models = stack(list.files ('./uncertainty_models', full.names = T))
 # number of layers
 length(uncert_models@layers)
 
-# EXAMPLE: Ceara, Brazil ---------------------
+# FULLY COMMENTED EXAMPLE: Ceara, Brazil ---------------------
 
 # Read shapefiles and select region of interest
 
 # World shapefiles from Natural Earth: 
-provs = readOGR('./shapefiles2/ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp')
+provs = readOGR('./shapefiles2/ne_10m_admin_1_states_provinces.shp')
 
 # Select specific region: CEARA
 #   Provinces of Brazil
@@ -56,13 +56,13 @@ BR = provs@data[which(provs@data$admin =='Brazil'),]
 BR$name
 #  Select specific province by subsetting the data frame
 cear = subset (provs, name == 'Ceará')
-# Create a buffer around the region of interest
+# Create a buffer around the region of interest. Warnings are related with the planar projection. 
 # this is to guarantee that all pixels in the raster layers are captured
 cear_buf = buffer(cear, width = 0.2, dissolve = T)
 # you can used different buffer sizes
 cear_buf2 = buffer(cear, width = 0.5, dissolve = T) 
 # Plot regions to verify our selection
-x11()
+x11() 
 plot(cear)
 plot(cear_buf,add=T)
 plot(cear_buf2,add=T)
@@ -117,7 +117,7 @@ f2_cear = e_space_cat(stck = cear_envs, ctgr = cear_mods[[3]], pflag = T, col.us
 # Background points are inside the region of interest but they have no suitability
 # value assigned by the model
 f3_cear = e_space_cat_back(stck = cear_envs, ctgr = cear_mods[[3]],
-                           bck = cear_envs2, pflag = T, col.use = col)
+                           bck = cear_envs, pflag = T, col.use = col)
 
 # FUNCTION 4: hutchinson
 
@@ -130,7 +130,7 @@ cear_tmp_hum = hutchinson(EtoG=T, data=f2_cear, calls=c(6,4), plyg=cear, ntr=3, 
 # temperature & soil
 cear_tmp_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(6,5), plyg=cear, ntr=3, col.use=col)
 # humidity & soil
-cear_hum_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(4,5), plyg=cear, ntr=3, col.use=col)
+cear_hum_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(4,5), plyg=cear, ntr=6, col.use=col)
 
 # Option 2: from G-space to E-space
 # temperature & humidity
@@ -140,10 +140,9 @@ cear2_tmp_soil = hutchinson(EtoG=F, data=f2_cear, calls=c(6,5), plyg=cear, ntr=3
 # humidity & soil
 cear2_hum_soil = hutchinson(EtoG=F, data=f2_cear, calls=c(4,5), plyg=cear, ntr=3, col.use=col)
 
-
 # The sampling exercise has the goal of maximizing the selection of different suitability
 # categories with the selection of different transects in either E-space or G-space.
-# Therefore, once the transects are selected, a final step will be to check the levels
+# Therefore, once the transects are selected, a final step is needed to check the levels
 # of uncertainty in the selected sites:
 
 # FUNCTION 5: post_track()
@@ -163,6 +162,112 @@ dim(uncer_check)
 # Save resulting tables for further analyses and visualizations
 write.csv(f2_cear, './ceara_df1.csv', row.names = F)
 write.csv(uncer_check, './ceara_res.csv', row.names = F)
+
+# WORKING EXAMPLE: Texas, US ---------------------
+
+# Read shapefiles and select region of interest
+
+# World shapefiles from Natural Earth: 
+provs = readOGR('./shapefiles2/ne_10m_admin_1_states_provinces.shp')
+
+# Select specific region: TEXAS
+#   STATES OF THE US
+US = provs@data[which(provs@data$admin =='United States of America'),] 
+#   Look for the specifi province
+US$name
+#  Select specific province by subsetting the data frame
+tex1 = subset (provs, name == 'Texas')
+
+#buffer
+tex1_buf = buffer(tex1, width = 0.2, dissolve = T)
+
+#plotting
+plot(tex1)
+plot(tex1_buf,add=T)
+
+
+# Preparing data
+
+# Environmental variables
+tex1_envs = crop(all_envs, tex1_buf)
+tex1_envs = mask(tex1_envs, tex1_buf)
+# plot one of the layers to verify that the process was done correctly
+plot (tex1_envs[[1]])
+
+# Categorized rasters
+tex1_mods = crop(cat_models, tex1_buf)
+tex1_mods= mask(tex1_mods, tex1_buf)
+# plot one of the layers to verify that the process was done correctly
+plot (tex1_mods[[3]]) 
+
+# Uncertainty maps
+tex1_unc = crop(uncert_models, tex1_buf)
+tex1_unc = mask(tex1_unc, tex1_buf)
+# plot one of the layers to verify that the process was done correctly
+plot(tex1_unc[[3]])
+
+# Using functions 
+
+# Select color ramp to be used in the visualizations
+col <- c("blueviolet", "springgreen3")
+
+# FUNCTION 1: e_space
+
+f1_tex1 = e_space(stck = tex1_envs,pflag = T)
+
+# FUNCTION 2: e_space_cat
+
+f2_tex1 = e_space_cat(stck = tex1_envs, ctgr = tex1_mods[[3]], pflag = T, col.use = col)
+
+# FUNCTION 3: e_space_cat_back
+
+f3_tex1 = e_space_cat_back(stck = tex1_envs, ctgr = tex1_mods[[3]],
+                           bck = tex1_envs, pflag = T, col.use = col)
+
+# FUNCTION 4: hutchinson
+
+# Option 1: from E-space to G-space
+# Select the columns that contain the enviromental variables to be plotted
+# and use them as the 'calls' argument of this function
+names (f2_tex1) 
+# temperature & humidity
+tex1_tmp_hum = hutchinson(EtoG=T, data=f2_tex1, calls=c(6,4), plyg=tex1, ntr=3, col.use=col)
+# temperature & soil
+tex1_tmp_soil = hutchinson(EtoG=T, data=f2_tex1, calls=c(6,5), plyg=tex1, ntr=3, col.use=col)
+# humidity & soil
+tex1_hum_soil = hutchinson(EtoG=T, data=f2_tex1, calls=c(4,5), plyg=tex1, ntr=3, col.use=col)
+
+# Option 1: from G-space to E-space
+# temperature & humidity
+tex12_tmp_hum = hutchinson(EtoG=F, data=f2_tex1, calls=c(6,4), plyg=tex1, ntr=3, col.use=col)
+# temperature & soil
+tex12_tmp_soil = hutchinson(EtoG=F, data=f2_tex1, calls=c(6,5), plyg=tex1, ntr=3, col.use=col)
+# humidity & soil
+tex12_hum_soil = hutchinson(EtoG=F, data=f2_tex1, calls=c(4,5), plyg=tex1, ntr=3, col.use=col)
+
+# The sampling exercise has the goal of maximizing the selection of different suitability
+# categories with the selection of different transects in either E-space or G-space.
+# Therefore, once the transects are selected, a final step is needed to check the levels
+# of uncertainty in the selected sites:
+
+# FUNCTION 5: post_track()
+
+# Combine the dataframes if your are willing to include more than two environmental variables
+tex1_sampling = rbind(tex1_tmp_hum, tex1_tmp_soil, tex1_hum_soil)
+dim(tex1_sampling)
+
+# Select uncertainty layer and apply function
+uncer_check = post_track(tex1_sampling, tex1_unc[[3]], tex1, col.use=col)
+
+#' Because different environmental tracks were selected using different environmental 
+#' variables, some information might be repeated, however, the post_track function
+#' eliminates duplicates
+dim(uncer_check)
+
+# Save resulting tables for further analyses and visualizations
+write.csv(f2_tex1, './tex1_df1.csv', row.names = F)
+write.csv(uncer_check, './tex1_res.csv', row.names = F)
+
 
 #
 # Daniel Romero-Alvarez & Laura Jimenez, 2020
