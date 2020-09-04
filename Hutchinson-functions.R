@@ -1,6 +1,7 @@
 # Function 'hutchinson'
-### These two functions ...
-### ...
+### This function allows to make a visualization of either the geographic or
+### the environmental representation of a set of points inside the region of study
+### and to select transects that can be used to desing a survey.
 #
 #' @param EtoG logical. If TRUE, E-space is plotted first to select transects and then,
 #'   transects are drawn in G-space. If FALSE, G-space is plotted first.

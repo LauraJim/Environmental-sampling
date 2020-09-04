@@ -1,6 +1,9 @@
-# Functions 'e_space', 'e_space_cat' and 'e_space_cat_back' ----------
-### These three functions ...
-### ...
+# Functions 'e_space', 'e_space_cat' and 'e_space_cat_back'
+### These three functions create data frames from a raster stack of environmental varibles,
+### with the option of including a suitability category from an SDM and a background region.
+### The resulting data frames will contain the geographic and environmental coordinates
+### of points inside the study regions that can be used for the visualization of the 
+### Hutchinson's duality.
 #
 #' @param stck raster stack containing the environmental variables of interest
 #'   cropped to the study area, it can also work as the background in function
@@ -11,7 +14,8 @@
 #'   area.
 #' @param pflag logic, indicating if the results should be plotted.
 #' @param col.use vector of lenght two with the colors to be used in plots
-#' @param wrld_map reference map used to plot in geographic space; default is wrld_simpl
+#' @param wrld_map reference map used to plot in geographic space; wrld_simpl is used
+#'   by default.
 #' 
 #' @return
 #' \code{e_space} returns a dataframe with the extracted environmental values

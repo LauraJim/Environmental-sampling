@@ -1,6 +1,7 @@
-# Functions 'post_track' ----------
-### This function ...
-### ...
+# Functions 'post_track'
+### This function uses the output of the 'hutchinson' function and adds an ucertainty
+### layer from the SDM to visualize the points selected for a survey. It gets rid of
+### repeated points selected in different tracks.
 #
 #' @param tracks dataframe with coordinates, categories, track class
 #' @param uncert_ras raster measuring variability
