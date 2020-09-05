@@ -1,8 +1,9 @@
-# Functions 'e_space', 'e_space_cat' and 'e_space_cat_back' ----------
+# Functions 'e_space', 'e_space_cat' and 'e_space_cat_back'
 ### These three functions allow the user explore the environmental space of a particular region (e_space) and 
 ### the environmental space divided in different suitable categories as determined by the model outpus (e_space_cat).
 ### The last function allows the comparison of a particular environment to a background of the same area depicting
 ### unsuitable environmnents or different environemntal regions. 
+
 #
 #' @param stck raster stack containing the environmental variables of interest
 #'   cropped to the study area, it can also work as the background in function
@@ -13,7 +14,8 @@
 #'   area.
 #' @param pflag logic, indicating if the results should be plotted.
 #' @param col.use vector of lenght two with the colors to be used in plots
-#' @param wrld_map reference map used to plot in geographic space; default is wrld_simpl
+#' @param wrld_map reference map used to plot in geographic space; wrld_simpl is used
+#'   by default.
 #' 
 #' @return
 #' \code{e_space} returns a dataframe with the extracted environmental values

@@ -1,4 +1,10 @@
 # WORKED EXAMPLE
+### This script contains a worked example on how to use all the functions created to design
+### a survey of potential sites inside a region of interest. The selection is based on the
+### suitability values from a Species Distribution Model (SDM) and can be focused in either
+### covering all the range of suitability values, if the goal is to improve the estimation
+### of the SDM, or covering the regions of high suitability, if the goal is to select sites
+### where the likelihood of detecting the species is high.
 
 # Read R code ----------------
 # These three scripts contain the functions needed for the analyses
@@ -126,7 +132,7 @@ cear_tmp_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(6,5), plyg=cear, ntr=3,
 # humidity & soil
 cear_hum_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(4,5), plyg=cear, ntr=6, col.use=col)
 
-# Option 1: from G-space to E-space
+# Option 2: from G-space to E-space
 # temperature & humidity
 cear2_tmp_hum = hutchinson(EtoG=F, data=f2_cear, calls=c(6,4), plyg=cear, ntr=3, col.use=col)
 # temperature & soil

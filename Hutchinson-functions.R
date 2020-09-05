@@ -3,6 +3,7 @@
 ### It allows the user to create transects in any environmental space and transfer them to the geographic space 
 ### or viceversa. It can be used to further explore and select areas on the environmental dimensions used to calibrate  
 ### the model or other environmental dimensions representing knowledge of the species niche. 
+
 #
 #' @param EtoG logical. If TRUE, E-space is plotted first to select transects and then,
 #'   transects are drawn in G-space. If FALSE, G-space is plotted first.

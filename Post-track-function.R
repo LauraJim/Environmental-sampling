@@ -1,7 +1,8 @@
-# Functions 'post_track' ----------
+# Functions 'post_track'
 ### This function allows the cleaning of the dataframe constructed via the 'Hutchinson' function and overlap  
 ### the dataframe with a raster of the selection of the user. Here we overlap the points with the raster that 
 ### examplifies uncertainty of the final model outputs on this particular excercise. 
+
 #
 #' @param tracks dataframe with coordinates, categories, track class
 #' @param uncert_ras raster measuring variability. It can be replaced by any other raster, e.g., altitude. 
