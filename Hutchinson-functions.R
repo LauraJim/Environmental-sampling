@@ -56,7 +56,8 @@ hutchinson <- function(EtoG, data, calls, plyg, ntr, col.use = NULL){
         transects[[j]] = cbind(as.matrix(data[ss,]),rep(j,length(ss)))
       }
       all.tr = data.frame(do.call(rbind,transects))  
-      names(all.tr[,ncol(data)+1]) <- "transects" 
+      colnames(all.tr) <- c(colnames(data),"transects")
+      #names(all.tr[,ncol(data)+1]) <- "transects" 
       # Plot 2: G-space
       dev.new()
       # add region limits
