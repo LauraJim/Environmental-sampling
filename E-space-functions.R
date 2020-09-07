@@ -98,10 +98,10 @@ e_space_cat <- function(stck, ctgr, pflag = F, col.use = NULL, wrld_map = wrld_s
       pts_sp = SpatialPointsDataFrame(def_df[,1:2],def_df, proj4string = crs(wrld_map))
       dev.new()
       # plot the points that cover the area of interest and identify them with its category
-      plot(pts_sp, col = pal5(catnum)[def_df[,3]], pch = 1+def_df[,3], cex = 0.5, main = 'G-space')
+      plot(pts_sp, col = pal5(catnum)[def_df[,3]], pch = 15, cex = 0.5, main = 'G-space')
       # add the boundary of the area
       plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
-      legend('bottomleft', legend = suit_class, pch = 1+unique(def_df[,3]), cex = 0.7,
+      legend('bottomleft', legend = suit_class, pch = 15, cex = 0.7,
              col = pal5(catnum))
     }
   }
@@ -148,12 +148,12 @@ e_space_cat_back = function(stck, ctgr, bck, pflag = F, col.use = NULL, wrld_map
       pts_sp = SpatialPointsDataFrame(def_df[,1:2],def_df, proj4string = crs(wrld_map))
       # G-space
       dev.new()
-      # plot the points
-      plot(pts_sp, col = pal5(catnum)[def_df[,3]], pch = 1+def_df[,3], cex = 0.6)
       # add the region of the world
-      plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]), add = T)
+      plot(wrld_map, xlim = c(pts_sp@bbox[1,]), ylim = c(pts_sp@bbox[2,]))
+      # plot the points
+      points (pts_sp, col = pal5(catnum)[def_df[,3]], pch = 15, cex = 0.6)
       # add legend
-      legend('bottomleft', legend=cat_names, pch = 1+unique(def_df[,3]), cex = 0.7,
+      legend('bottomleft', legend=cat_names, pch = 15, cex = 0.7,
              col = pal5(catnum))
     }
   }
