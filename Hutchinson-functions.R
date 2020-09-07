@@ -57,7 +57,6 @@ hutchinson <- function(EtoG, data, calls, plyg, ntr, col.use = NULL){
       }
       all.tr = data.frame(do.call(rbind,transects))  
       colnames(all.tr) <- c(colnames(data),"transects")
-      #names(all.tr[,ncol(data)+1]) <- "transects" 
       # Plot 2: G-space
       dev.new()
       # add region limits
