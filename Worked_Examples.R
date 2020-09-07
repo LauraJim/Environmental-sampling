@@ -1,4 +1,4 @@
-# WORKED EXAMPLE
+# WORKED EXAMPLES
 ### This script contains a worked example on how to use all the functions created to design
 ### a survey of potential sites inside a region of interest. The selection is based on the
 ### suitability values from a Species Distribution Model (SDM) and can be focused in either
@@ -42,7 +42,7 @@ uncert_models = stack(list.files ('./uncertainty_models', full.names = T))
 # number of layers
 length(uncert_models@layers)
 
-# FULLY COMMENTED EXAMPLE: Ceara, Brazil ---------------------
+# WORKED EXAMPLE 1, FULLY COMMENTED: Ceara, Brazil ---------------------
 
 # Read shapefiles and select region of interest
 
@@ -163,7 +163,7 @@ dim(uncer_check)
 write.csv(f2_cear, './ceara_df1.csv', row.names = F)
 write.csv(uncer_check, './ceara_res.csv', row.names = F)
 
-# WORKING EXAMPLE: Texas, US ---------------------
+# WORKED EXAMPLE 2: Texas, US ---------------------
 
 # Read shapefiles and select region of interest
 
