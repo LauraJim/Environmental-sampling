@@ -130,7 +130,7 @@ cear_tmp_hum = hutchinson(EtoG=T, data=f2_cear, calls=c(6,4), plyg=cear, ntr=3, 
 # temperature & soil
 cear_tmp_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(6,5), plyg=cear, ntr=3, col.use=col)
 # humidity & soil
-cear_hum_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(4,5), plyg=cear, ntr=6, col.use=col)
+cear_hum_soil = hutchinson(EtoG=T, data=f2_cear, calls=c(4,5), plyg=cear, ntr=3, col.use=col)
 
 # Option 2: from G-space to E-space
 # temperature & humidity
