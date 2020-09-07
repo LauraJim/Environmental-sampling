@@ -4,15 +4,15 @@ The Hutchinson’s duality allows linking a point in geography to a point in an 
 
 Potential detections of the species of interest from different suitability categories, especially those that are different from the maximum value of suitability will improve the fitting of ecological niche models by adding occurrences.
 
-The example included here focuses on the region Ceara, in Brazil and the species Burkholderia pseudomallei (the Gram-negative bacteria known to cause the infectious disease called Melioidosis). However, the methodology of environmental sampling presented can be replicated for other states, countries, or regions. 
+The examples included here focuses on the species Burkholderia pseudomallei (the Gram-negative bacteria known to cause the infectious disease called Melioidosis) in the regions Ceara, Brazil and Texas, United States (this last one as presented in Romero-Alvarez et al., 2020). These examples illustrate how the proposed methodology of environmental sampling can be replicated for other states, countries, or regions. 
  
-In order to reproduce the example, please follow these steps:
+In order to reproduce the examples, please follow these steps:
 
-(1) Download or clone this repository and un-zip the folders that contain the data: ceara_shapefiles.zip, categorized_models.zip, environmental_variables.zip uncertainty_models.zip. Notice that you will need to replace these files in order to reproduce the example with another species and region of study.
+(1) Download or clone this repository in your computer and un-zip the folders that contain the datasets: shapefiles2.zip, categorized_models.zip, environmental_variables.zip uncertainty_models.zip. Notice that you will need to replace these files in order to reproduce the example with another species and region of study. You will need to have all these folders that contain the polygons of the regions of interes, the categorized SDMs, the environmental layers used in the SDMs, and the models of quantification of uncertainty, respectively.
 
-(2) Open the R project called Environmental-sampling and from there, open the R script called Example_Ceara_Brazil.R.
+(2) Open the R project called Environmental-sampling and from there, open the R script called Worked_Examples.R. These code will guide you to reproduce one analysis for the region of Ceara and another for Texas.
 
-(3) Run all the lines in Example_Ceara_Brazil.R and read the comments in each line.
+(3) Run all the lines under each example and read the comments to understand what each line of code is doing. Detailed comments are included in the source codes of the functions, see the scripts called E-space-functions.R, Hutchinson-function.R, and Post-track-function.R.
 
 We also recommend you to check out the paper in which we first presented and used this methodology:
 - Romero-Alvarez et al. ( ) Data oriented environmental sampling of Burkholderia pseudomallei via ecological niche modeling: an example in Texas, United States. ADD DOI.
