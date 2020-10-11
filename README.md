@@ -15,6 +15,6 @@ In order to reproduce the examples, please follow these steps:
 (3) Run all the lines under each example and read the comments to understand what each line of code is doing. Detailed comments are included in the source codes of the functions, see the scripts called E-space-functions.R, Hutchinson-function.R, and Post-track-function.R for further detailed information.
 
 We also recommend you to check out the paper in which we first presented and used this methodology:
-- Romero-Alvarez et al. ( ) Data oriented environmental sampling of Burkholderia pseudomallei via ecological niche modeling: an example in Texas, United States. ADD DOI.
+- Romero-Alvarez et al. ( ) Data-oriented sampling of Burkholderia pseudomallei environmental distribution via ecological niche modeling: an example in Texas, United States. ADD DOI.
 
 How to cite this code:
